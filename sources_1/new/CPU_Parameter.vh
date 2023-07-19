@@ -1,9 +1,14 @@
 
 
+`define UNDEFINE 32'h0
+
 //the reset value of PC
 `define PC_RST 32'h8000_0000 
 
-`define WORD 32
+`define DOUBLE 64
+`define WORD   32
+`define HALF   16
+`define BYTE   8
 
 //opcode 
 `define OPCODE_LEN 4
