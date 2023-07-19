@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2023/07/16 16:16:53
+// Create Date: 2023/07/19 17:07:40
 // Design Name: 
-// Module Name: decoder
+// Module Name: SEL_2
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -20,9 +20,13 @@
 //////////////////////////////////////////////////////////////////////////////////
 `include "CPU_Parameter.vh"
 
-module decoder(
-    input [`WORD-1:0] inst,
-    output reg [`OPCODE_LEN-1:0] ALU_opcode,
-    output reg [`OPCODE_LEN-1:0] CMP_opcode
+module SEL_2(
+    input sel,
+    input [`WORD-1:0] in0,
+    input [`WORD-1:0] in1,
+    output wire [`WORD-1:0] out
     );
+    
+    assign out = sel ? in1 : in0;
+
 endmodule
