@@ -10,6 +10,8 @@
 `define HALF   16
 `define BYTE   8
 
+`define REG_LOG 5
+
 //opcode 
 `define OPCODE_LEN 4
 `define ALU_ADD  4'b0000
