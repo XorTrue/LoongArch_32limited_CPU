@@ -35,16 +35,18 @@ module IMM(
     always@(*)
     begin
         casex({inst[30:28], inst[25], inst[22]})
-            5'b1xxxx : imm = 32'h4;
-            5'b01xxx : imm = si12;
-            5'b001xx : imm = si20;
-            5'b0001x : imm = usi12;
-            5'b00001 : imm = ui5;
+            5'b1xxxx : imm = 32'h4; // 跳转指令
+            5'b01xxx : imm = si12;  // 访存指令
+            5'b001xx : imm = si20;  // 加载立即数指令
+            5'b0001x : imm = usi12; // 整型立即数运算指令
+            5'b00001 : imm = ui5;   // 移位指令
             default : imm = `UNDEFINE;
         endcase
     end
 
-    assign offs  = { {17{inst[25]}}, inst[24:10] };
+    assign offs = (inst[31:27] == 5'b01010) ? 
+        { {15{inst[25]}}, inst[24:10], 2'b00 } :
+        { { 5{inst[ 9]}}, inst[ 8: 0], inst[25: 10], 2'b00 } ;
 
     /*always@(*)
     begin

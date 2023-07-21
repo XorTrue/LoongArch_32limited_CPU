@@ -28,3 +28,8 @@
 `define CMP_NE   4'b0001
 `define CMP_GE   4'b0010
 `define CMP_B    4'b1111
+
+// Result MUX
+`define RES_ALU 2'b00
+`define RES_CMP 2'b01
+`define RES_MEM 2'b11
