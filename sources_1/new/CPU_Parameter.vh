@@ -32,4 +32,4 @@
 // Result MUX
 `define RES_ALU 2'b00
 `define RES_CMP 2'b01
-`define RES_MEM 2'b11
+`define RES_MEM 2'b1x

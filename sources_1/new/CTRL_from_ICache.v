@@ -21,36 +21,14 @@
 
 
 module CTRL_from_ICache(
-    input clk, rst,
     input ICache_valid, ICache_ready,
-    output reg IF0_IF1_stall_from_ICache,
-    output reg IF1_ID_flush_from_ICache,
-    output reg PC_stall_from_ICache
+    output IF1_ID_flush_from_ICache,
+    output PC_stall_from_ICache
     );
 
-    always@(posedge clk)
-    begin
-        if(rst)
-        begin
-            { IF0_IF1_stall_from_ICache, 
-              IF1_ID_flush_from_ICache, 
-              PC_stall_from_ICache } <= 3'b000;
-        end
-        else
-        begin
-            if(~ICache_valid | ICache_ready)
-            begin
-                { IF0_IF1_stall_from_ICache, 
-                  IF1_ID_flush_from_ICache, 
-                  PC_stall_from_ICache } <= 3'b000;
-            end
-            else
-            begin
-                { IF0_IF1_stall_from_ICache, 
-                  IF1_ID_flush_from_ICache, 
-                  PC_stall_from_ICache } <= 3'b111;
-            end
-        end
-    end
+    assign  { IF1_ID_flush_from_ICache, 
+              PC_stall_from_ICache } = 
+                (~ICache_valid | ICache_ready) ?
+                    2'b00 : 2'b11;
 
 endmodule

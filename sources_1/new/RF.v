@@ -23,10 +23,10 @@
 module RF(
     input clk, rst,
     input RFWrite,
-    input [`REG_LOG-1:0] rs0, rs1,
     input [`REG_LOG-1:0] rd,
     input [`WORD-1:0] rd_WriteData,
-    output [`WORD-1:0] src0, src1
+    input [`REG_LOG-1:0] rs0, rs1, rs2,
+    output [`WORD-1:0] src0, src1, src2
     );
 
     reg [`WORD-1:0] REG [31:0];
@@ -48,7 +48,6 @@ module RF(
         end
     end
 
-    assign src0 = REG[rs0];
-    assign src1 = REG[rs1];
+    assign {src0, src1, src2} = {REG[rs0], REG[rs1], REG[rs2]};
 
 endmodule

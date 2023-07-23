@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 `include "CPU_Parameter.vh"
 
-module IMM(
+module IMM_OFFS(
     input [`WORD-1:0] inst,
     output reg [`WORD-1:0] imm,
     output [`WORD-1:0] offs
