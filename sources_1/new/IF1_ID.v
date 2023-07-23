@@ -28,8 +28,8 @@ module IF1_ID(
     input IF1_ID_flush_from_ICache,
     input IF1_ID_flush_from_Pre_Branch,
  
-    input IF1_ID_PC_in,
-    input IF1_ID_inst_in,
+    input [`WORD-1:0] IF1_ID_PC_in,
+    input [`WORD-1:0] IF1_ID_inst_in,
 
     output reg [`WORD-1:0] IF1_ID_PC_out,
     output reg [`WORD-1:0] IF1_ID_inst_out

@@ -28,6 +28,7 @@ module ID(
     input [`WORD-1:0] REG_write_data,
     output [`OPCODE_LEN*2-1:0] opcode,
     output [7:0] CTRL_EX,
+    output [14:0] rs,
     output [`WORD*3-1:0] src,
     output [`WORD*2-1:0] CONST
     );
@@ -41,13 +42,15 @@ module ID(
         .ALU_opcode(ALU_opcode),
         .CMP_opcode(CMP_opcode),
         .REG_WB(REG_WB),
-        .MEM(MEM)
+        .MEM(MEM),
+        .EX(EX)
     );
     assign opcode = {ALU_opcode, CMP_opcode};
     assign CTRL_EX = {REG_WB, MEM, EX};
 
     wire [4:0] rs0, rs1, rs2;
     assign {rs2, rs1, rs0} = inst[14:0];
+    assign rs = {rs2, rs1, rs0};
     wire [`WORD-1:0] src0, src1, src2;
     RF RF(
         .clk(clk), 
@@ -63,8 +66,8 @@ module ID(
     wire [`WORD-1:0] IMM, OFFS;
     IMM_OFFS IMM_OFFS(
         .inst(inst),
-        .IMM(IMM),
-        .OFFS(OFFS)
+        .imm(IMM),
+        .offs(OFFS)
     );
     assign CONST = {IMM, OFFS};
 

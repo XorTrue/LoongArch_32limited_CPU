@@ -62,7 +62,7 @@ module CPU_top(
     Predict_2bit Predict_2bit(
         .clk(clk), .rst(rst),
         .is_branch(), .branch(),
-        .predict(predict)
+        .predict_out(predict)
     );
     
 
@@ -99,9 +99,9 @@ module CPU_top(
     wire [`WORD-1:0] REG_write_data;
     wire [`OPCODE_LEN*2-1:0] opcode;
     wire [7:0] CTRL_EX;
+    wire [14:0] rs;
     wire [`WORD*3-1:0] src;
     wire [`WORD*2-1:0] CONST;
-
     ID ID(
         .clk(clk), .rst(rst),
         .inst(inst_ID),
@@ -110,6 +110,7 @@ module CPU_top(
         .REG_write_data(REG_write_data),
         .opcode(opcode),
         .CTRL_EX(CTRL_EX),
+        .rs(rs),
         .src(src),
         .CONST(CONST)
     );

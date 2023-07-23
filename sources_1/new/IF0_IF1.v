@@ -24,7 +24,7 @@ module IF0_IF1(
     input clk,
     input rst,
 
-    input IF0_IF1_PC_in,
+    input [`WORD-1:0] IF0_IF1_PC_in,
     input ICache_valid_in,
 
     output reg [`WORD-1:0] IF0_IF1_PC_out,
