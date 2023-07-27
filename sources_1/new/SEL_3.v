@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2023/07/23 17:34:36
+// Create Date: 2023/07/27 16:59:20
 // Design Name: 
-// Module Name: Predict_2bit
+// Module Name: SEL_3
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -18,28 +18,22 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
+`include "CPU_Parameter.vh"
 
-
-module Predict_2bit(
-    input clk, rst,
-    input EX_Branch,
-    output predict_out
+module SEL_3(
+    input [1:0] sel,
+    input [`WORD-1:0] in0, in1, in2,
+    output reg [`WORD-1:0] out
     );
 
-    reg [1:0] predict;
-
-    always@(posedge clk)
+    always@(*)
     begin
-        if(rst)
-        begin
-            predict <= 2'b00;
-        end
-        else
-        begin
-                predict <= predict + {1'b0, EX_Branch};
-        end
+        casex(sel)
+            2'b1x: out = in2;
+            2'b01: out = in1;
+            2'b00: out = in0;
+            default: out = 32'h0;
+        endcase
     end
-
-    assign predict_out = predict[1];
     
 endmodule

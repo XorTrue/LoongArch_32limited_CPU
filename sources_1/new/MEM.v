@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2023/07/23 20:15:46
+// Create Date: 2023/07/27 21:32:53
 // Design Name: 
-// Module Name: ID_EX0
+// Module Name: MEM
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -18,14 +18,24 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
+`include "CPU_Parameter.vh"
 
-
-module ID_EX0(
+module MEM(
     input clk, rst,
+    input CAL_SEL,
+    input [`WORD-1:0] ALU_res,
+    input [`WORD-1:0] MUL_res,
 
-    input ID_EX0_stall_from_DCache,
-    input ID_EX0_flush_from_EX_Branch
 
-
+    output [`WORD-1:0] CAL_res
     );
+
+
+    SEL_2 ALU_or_MUL(
+        .sel(CAL_SEL),
+        .in0(ALU_res),
+        .in1(MUL_res),
+        .out(CAL_res)
+    );
+
 endmodule
