@@ -305,7 +305,7 @@ module CPU_top(
         .rs_ID(rs_ID),
         .stall_from_Load(stall_from_Load),
         .flush_from_Load(flush_from_Load)
-    )
+    );
 
 
 endmodule
