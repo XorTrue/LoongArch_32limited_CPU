@@ -36,6 +36,7 @@ module Hazard(
     assign {MEM_read, MEM_write} = MEM;
 
     wire [`REG_LOG-1:0] rs0_ID, rs1_ID, rs2_ID;
+    assign {rs0_ID, rs1_ID, rs2_ID} = rs_ID;
     assign stall_from_Load = 
         MEM_read & |rd_EX & ( (rs0_ID == rd_EX) | (rs1_ID == rd_EX) | (rs2_ID == rd_EX) );
     assign flush_from_Load = 

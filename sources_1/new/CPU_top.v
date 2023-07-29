@@ -100,22 +100,22 @@ module CPU_top(
     wire REG_write;
     wire [`REG_LOG-1:0] REG_write_addr;
     wire [`WORD-1:0] REG_write_data;
-    wire [`OPCODE_LEN*2-1:0] opcode;
-    wire [7:0] CTRL_EX;
-    wire [`REG_LOG*3-1:0] rs;
-    wire [`WORD*3-1:0] src;
-    wire [`WORD*2-1:0] CONST;
+    wire [`OPCODE_LEN*2-1:0] opcode_ID;
+    wire [7:0] CTRL_EX_ID;
+    wire [`REG_LOG*3-1:0] rs_ID;
+    wire [`WORD*3-1:0] src_ID;
+    wire [`WORD*2-1:0] CONST_ID;
     ID ID(
         .clk(clk), .rst(rst),
         .inst(inst_ID),
         .REG_write(REG_write), 
         .REG_write_addr(REG_write_addr), 
         .REG_write_data(REG_write_data),
-        .opcode(opcode),
-        .CTRL_EX(CTRL_EX),
-        .rs(rs),
-        .src(src),
-        .CONST(CONST)
+        .opcode(opcode_ID),
+        .CTRL_EX(CTRL_EX_ID),
+        .rs(rs_ID),
+        .src(src_ID),
+        .CONST(CONST_ID)
     );
     
 
@@ -137,15 +137,15 @@ module CPU_top(
         .ID_EX_PC_out(PC_EX),
         .ID_EX_inst_in(inst_ID),
         .ID_EX_inst_out(inst_EX),
-        .ID_EX_opcode_in(opcode),
+        .ID_EX_opcode_in(opcode_ID),
         .ID_EX_opcode_out(opcode_EX),
-        .ID_EX_CTRL_EX_in(CTRL_EX),
+        .ID_EX_CTRL_EX_in(CTRL_EX_ID),
         .ID_EX_CTRL_EX_out(CTRL_EX_EX),
-        .ID_EX_rs_in(rs),
+        .ID_EX_rs_in(rs_ID),
         .ID_EX_rs_out(rs_EX),
-        .ID_EX_src_in(src),
+        .ID_EX_src_in(src_ID),
         .ID_EX_src_out(src_EX),
-        .ID_EX_CONST_in(CONST),
+        .ID_EX_CONST_in(CONST_ID),
         .ID_EX_CONST_out(CONST_EX)
     );
 
@@ -229,14 +229,14 @@ module CPU_top(
         .mul_res(mul_res)
     );
 
-    wire [`WORD-1:0] data;
+    wire DCache_ready;
+    wire [`WORD-1:0] data_DCache;
     DCache DCache(
 
     );
 
     wire REG_wrtie_MEM;
     wire [`WORD-1:0] CAL_res;
-    wire DCache_ready;
     MEM MEM(
         .clk(clk), .rst(rst),
         .PC(PC_MEM),
@@ -271,7 +271,7 @@ module CPU_top(
         .MEM_WB_rs_out(rs_WB),
         .MEM_WB_CAL_res_in(CAL_res),
         .MEM_WB_CAL_res_out(CAL_res_WB),
-        .MEM_WB_data_in(data),
+        .MEM_WB_data_in(data_DCache),
         .MEM_WB_data_out(data_WB)
     );
 
@@ -283,7 +283,7 @@ module CPU_top(
         .rs(rs_WB),
         .CAL_res(CAL_res_WB),
         .data(data_WB),
-        .REG_write(REG_write_WB),
+        .REG_write_WB(REG_write_WB),
         .rd(REG_write_addr),
         .WB_data(REG_write_data)
     );

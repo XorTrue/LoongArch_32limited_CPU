@@ -22,7 +22,7 @@
 
 module EX(
     input clk, rst,
-    input PC,
+    input [`WORD-1:0] PC,
     input [`OPCODE_LEN*2-1:0] opcode,
     input [7:0] CTRL_EX,
     input [`REG_LOG*3-1:0] rs,
@@ -98,7 +98,9 @@ module EX(
         .ALU_in0(ALU_in0), .ALU_in1(ALU_in1), 
         .ALU_out(ALU_out)
     );
-    wire [`WORD-1:0] CMP_out, CMP_PC_out;
+
+    wire CMP_out;
+    wire [`WORD-1:0] CMP_PC_out;
     CMP CMP(
         .CMP_opcode(CMP_opcode),
         .CMP_in0(src0_fwd), .CMP_in1(src1_fwd), 
@@ -108,7 +110,7 @@ module EX(
     );
 
     EX_Branch EX_Branch(
-        .is_branch(is_branch), .branch(branch), 
+        .is_branch(is_branch), .branch(CMP_out), 
         .predict(predict), 
         .EX_Branch_out(EX_Branch_out),
         .PC_EX(PC),
