@@ -23,6 +23,7 @@
 module IF0_IF1(
     input clk,
     input rst,
+    input IF0_IF1_stall_from_Load,
 
     input [`WORD-1:0] IF0_IF1_PC_in,
     input ICache_valid_in,
@@ -31,16 +32,31 @@ module IF0_IF1(
     output reg ICache_valid_out
     );
 
+    wire stall = IF0_IF1_stall_from_Load;
     always@(posedge clk)
     begin
         if(rst)
         begin
-            {IF0_IF1_PC_out, ICache_valid_out} <= {32'b0, 1'b0};
+            { IF0_IF1_PC_out, 
+              ICache_valid_out } <= 
+            { 32'b0, 1'b0 };
         end
         else
         begin
-            IF0_IF1_PC_out <= IF0_IF1_PC_in;
-            ICache_valid_out <= ICache_valid_in;
+            if(stall)
+            begin
+                { IF0_IF1_PC_out, 
+                  ICache_valid_out } <= 
+                { IF0_IF1_PC_out, 
+                  ICache_valid_out };
+            end
+            else
+            begin
+                { IF0_IF1_PC_out, 
+                  ICache_valid_out } <= 
+                { IF0_IF1_PC_in,
+                  ICache_valid_in};
+            end
         end
     end
 

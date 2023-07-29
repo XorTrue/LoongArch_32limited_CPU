@@ -27,6 +27,7 @@ module IF0(
     input EX_Branch,
     input [`WORD-1:0] EX_PC, 
     input PC_stall_from_ICache,
+    input PC_stall_from_Load,
     input PC_stall_from_DCache,
     output [`WORD-1:0] PC_out
     );
@@ -41,11 +42,12 @@ module IF0(
         .NPC(PC_in)
     );
 
+    wire PC_stall = PC_stall_from_ICache | PC_stall_from_Load | PC_stall_from_DCache;
     PC PC(
         .clk(clk),
         .rst(rst),
         .PC_in(PC_in),
-        .PC_stall(PC_stall_from_ICache | PC_stall_from_DCache),
+        .PC_stall(PC_stall),
         .PC_out(PC_out)
     );
 

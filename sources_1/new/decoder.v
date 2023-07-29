@@ -24,10 +24,17 @@ module Decoder(
     input [`WORD-1:0] inst,
     output reg [`OPCODE_LEN-1:0] ALU_opcode,
     output reg [`OPCODE_LEN-1:0] CMP_opcode,
+    output [`REG_LOG*3-1:0] rs,
     output [1:0] REG_WB,
     output [1:0] MEM,
     output [3:0] EX
     );
+
+    wire [`REG_LOG-1:0] rs0, rs1, rs2;
+    assign rs2 = (~|inst[31:21] & inst[20]) ? 5'b0 : inst[14:10];
+    assign rs1 = ((~|inst[31:29] & inst[28]) | (inst[31:27] == 5'b01010)) ? 5'b0 : inst[9:5]; 
+    assign rs0 = (inst[31:25] == 5'b01010) ? {4'b0, inst[26]} : inst[4:0];
+    assign rs = {rs2, rs1, rs0};
 
     wire REG_write = 
         (inst[31:26] == 6'b010011) |    // JIRL

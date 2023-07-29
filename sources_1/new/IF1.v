@@ -30,15 +30,15 @@ module IF1(
     output Pre_Branch_out,
     output [`WORD-1:0] Pre_PC_out,
 
-    output PC_stall_from_ICache,
-    output IF1_ID_flush_from_ICache
+    output stall_from_ICache,
+    output flush_from_ICache
     );
 
     CTRL_from_ICache CTRL_from_ICache(
         .ICache_valid(ICache_valid),
         .ICache_ready(ICache_ready),
-        .IF1_ID_flush_from_ICache(IF1_ID_flush_from_ICache),
-        .PC_stall_from_ICache(PC_stall_from_ICache)
+        .flush_from_ICache(flush_from_ICache),
+        .stall_from_ICache(stall_from_ICache)
     );
 
     Pre_Branch Pre_Branch(

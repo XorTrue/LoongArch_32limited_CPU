@@ -25,13 +25,13 @@ module EX(
     input PC,
     input [`OPCODE_LEN*2-1:0] opcode,
     input [7:0] CTRL_EX,
-    input [14:0] rs,
+    input [`REG_LOG*3-1:0] rs,
     input [`WORD*3-1:0] src,
     input [`WORD*2-1:0] CONST,
 
     input [5:0] fwd,
-    input [`WORD*3-1:0] src_from_MEM,
-    input [`WORD*3-1:0] src_from_WB,
+    input [`WORD-1:0] src_from_MEM,
+    input [`WORD-1:0] src_from_WB,
 
     input predict,
 
@@ -44,27 +44,24 @@ module EX(
 
     wire [1:0] fwd0, fwd1, fwd2;
     assign {fwd2, fwd1, fwd0} = fwd;
-    wire [`WORD-1:0] src0_from_MEM, src1_from_MEM, src2_from_MEM;
-    assign {src2_from_MEM, src1_from_MEM, src0_from_MEM} = src_from_MEM;
-    wire [`WORD-1:0] src0_from_WB, src1_from_WB, src2_from_WB;
-    assign {src2_from_WB, src1_from_WB, src0_from_WB} = src_from_WB;
+
     wire [`WORD-1:0] src0, src1, src2;
     assign {src2, src1, src0} = src;
     wire [`WORD-1:0] src0_fwd, src1_fwd, src2_fwd;
 
     SEL_3 FWD0_SRC0(
         .sel(fwd0),
-        .in0(src0), .in1(src0_from_MEM), .in2(src0_from_WB),
+        .in0(src0), .in1(src_from_WB), .in2(src_from_MEM),
         .out(src0_fwd)
     );
     SEL_3 FWD1_SRC1(
         .sel(fwd1),
-        .in0(src1), .in1(src1_from_MEM), .in2(src1_from_WB),
+        .in0(src1), .in1(src_from_WB), .in2(src_from_MEM),
         .out(src1_fwd)
     );
     SEL_3 FWD2_SRC2(
         .sel(fwd2),
-        .in0(src2), .in1(src2_from_MEM), .in2(src2_from_WB),
+        .in0(src2), .in1(src_from_WB), .in2(src_from_MEM),
         .out(src2_fwd)
     );
     assign src_fwd = {src2_fwd, src1_fwd};

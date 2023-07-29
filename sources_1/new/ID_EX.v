@@ -25,12 +25,13 @@ module ID_EX(
 
     input ID_EX_stall_from_DCache,
     input ID_EX_flush_from_EX_Branch,
+    input ID_EX_flush_from_Load,
     
     input [`WORD-1:0] ID_EX_PC_in,
     input [`WORD-1:0] ID_EX_inst_in,
     input [`OPCODE_LEN*2-1:0] ID_EX_opcode_in,
     input [7:0] ID_EX_CTRL_EX_in,
-    input [14:0] ID_EX_rs_in,
+    input [`REG_LOG*3-1:0] ID_EX_rs_in,
     input [`WORD*3-1:0] ID_EX_src_in,
     input [`WORD*2-1:0] ID_EX_CONST_in,
 
@@ -38,14 +39,15 @@ module ID_EX(
     output reg [`WORD-1:0] ID_EX_inst_out,
     output reg [`OPCODE_LEN*2-1:0] ID_EX_opcode_out,
     output reg [7:0] ID_EX_CTRL_EX_out,
-    output reg [14:0] ID_EX_rs_out,
+    output reg [`REG_LOG*3-1:0] ID_EX_rs_out,
     output reg [`WORD*3-1:0] ID_EX_src_out,
     output reg [`WORD*2-1:0] ID_EX_CONST_out
     
     );
     
     wire stall = ID_EX_stall_from_DCache;
-    wire flush = ID_EX_flush_from_EX_Branch;
+    wire flush = ID_EX_flush_from_EX_Branch | 
+                 ID_EX_flush_from_Load;
 
     always@(posedge clk)
     begin

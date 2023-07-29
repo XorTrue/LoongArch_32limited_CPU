@@ -25,6 +25,7 @@ module IF1_ID(
 
     input IF1_ID_stall_from_DCache,   
     input IF1_ID_flush_from_EX_Branch,
+    input IF1_ID_stall_from_Load,
     input IF1_ID_flush_from_ICache,
     input IF1_ID_flush_from_Pre_Branch,
  
@@ -35,7 +36,8 @@ module IF1_ID(
     output reg [`WORD-1:0] IF1_ID_inst_out
     );
 
-    wire stall = IF1_ID_stall_from_DCache;
+    wire stall = IF1_ID_stall_from_DCache | 
+                (~IF1_ID_flush_from_EX_Branch & IF1_ID_stall_from_Load);
     wire flush = |{ IF1_ID_flush_from_EX_Branch, 
                     IF1_ID_flush_from_ICache, 
                     IF1_ID_flush_from_Pre_Branch };

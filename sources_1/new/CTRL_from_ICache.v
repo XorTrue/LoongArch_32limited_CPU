@@ -22,13 +22,12 @@
 
 module CTRL_from_ICache(
     input ICache_valid, ICache_ready,
-    output IF1_ID_flush_from_ICache,
-    output PC_stall_from_ICache
+    output flush_from_ICache,
+    output stall_from_ICache
     );
 
-    assign  { IF1_ID_flush_from_ICache, 
-              PC_stall_from_ICache } = 
-                (~ICache_valid | ICache_ready) ?
-                    2'b00 : 2'b11;
+    assign stall_from_ICache = ~ICache_ready & ICache_valid;
+    assign flush_from_ICache = ~ICache_ready & ICache_valid;
+    
 
 endmodule
