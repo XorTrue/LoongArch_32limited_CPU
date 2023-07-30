@@ -22,6 +22,7 @@
 
 module CPU_top(
     input clk, rst
+
     );
 
     wire Pre_Branch, EX_Branch;
@@ -44,20 +45,36 @@ module CPU_top(
     );
 
     wire [`WORD-1:0] PC_IF1;
+    wire ICache_valid_in = 1;
     wire ICache_valid;
     IF0_IF1 IF0_IF1(
         .clk(clk), .rst(rst),
         .IF0_IF1_stall_from_Load(stall_from_Load),
         .IF0_IF1_PC_in(PC_IF0), 
         .IF0_IF1_PC_out(PC_IF1), 
-        .ICache_valid_in(1),
+        .ICache_valid_in(ICache_valid_in),
         .ICache_valid_out(ICache_valid)
     );
 
     wire ICache_ready;
+    wire memory_ready_for_ICache;
+    wire [`CACHE_LINE_WIDTH-1:0] data_from_mem;
+    wire [`WORD-1:0] load_addr;
+    wire memory_valid_for_ICache;
     wire [`WORD-1:0] inst_ICache;
     ICache ICache(
-
+        .clk(clk),
+        .rst(rst),
+        .stall(stall_from_DCache | stall_from_Load),
+        .flush(Pre_Branch | EX_Branch),
+        .PC(PC_IF0),
+        .pipeline_valid(ICache_valid_in),
+        .memory_ready(memory_ready_for_ICache),
+        .data_from_mem(data_from_mem),
+        .load_addr(load_addr),
+        .pipeline_ready(ICache_ready),
+        .memory_valid(memory_valid_for_ICache),
+        .inst(inst_ICache)
     );
 
     wire predict;
@@ -237,6 +254,7 @@ module CPU_top(
 
     wire REG_wrtie_MEM;
     wire [`WORD-1:0] CAL_res;
+    wire flush_from_DCache;
     MEM MEM(
         .clk(clk), .rst(rst),
         .PC(PC_MEM),
@@ -261,6 +279,7 @@ module CPU_top(
     wire [`WORD-1:0] data_WB;
     MEM_WB MEM_WB(
         .clk(clk), .rst(rst),
+        .MEM_WB_flush_from_DCache(flush_from_DCache),
         .MEM_WB_PC_in(PC_MEM),
         .MEM_WB_PC_out(PC_WB),
         .MEM_WB_inst_in(inst_MEM),

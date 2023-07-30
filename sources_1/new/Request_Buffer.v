@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2023/07/23 17:34:36
+// Create Date: 2023/07/30 16:27:39
 // Design Name: 
-// Module Name: Predict_2bit
+// Module Name: Request_Buffer
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -18,24 +18,24 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
+`include "CPU_Parameter.vh"
 
-
-module Predict_2bit(
+module Request_Buffer(
     input clk, rst,
-    input EX_Branch,
-    output predict_out
+    input we,
+    input [`WORD-1:0] in,
+    output reg [`WORD-1:0] out
     );
-
-    reg [1:0] predict = 0;
-
     always@(posedge clk)
     begin
         if(rst)
-            predict <= 2'b00;
+            out <= `PC_RST;
         else
-            predict <= predict + {1'b0, EX_Branch};
+        begin
+            if(we)
+                out <= in;
+            else
+                out <= out;
+        end
     end
-
-    assign predict_out = predict[1];
-    
 endmodule

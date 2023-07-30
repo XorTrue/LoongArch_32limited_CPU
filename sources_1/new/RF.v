@@ -31,7 +31,17 @@ module RF(
 
     reg [`WORD-1:0] REG [31:0];
 
-    integer i;
+
+    generate
+        integer i;
+        initial
+            for(i = 0; i <= 31; i = i + 1)
+            begin: reg_init
+                REG[i] = 32'h0;
+            end
+    endgenerate
+
+    //integer j;  
     always@(negedge clk)
     begin
         if(rst)

@@ -22,6 +22,7 @@
 
 module MEM_WB(
     input clk, rst,
+    input MEM_WB_flush_from_DCache,
     input [`WORD-1:0] MEM_WB_PC_in,
     input [`WORD-1:0] MEM_WB_inst_in,
     input [7:0] MEM_WB_CTRL_EX_in,
@@ -37,6 +38,7 @@ module MEM_WB(
     output reg [`WORD-1:0] MEM_WB_data_out
     );
 
+    assign flush = MEM_WB_flush_from_DCache;
     always@(posedge clk)
     begin
         if(rst)
@@ -57,6 +59,7 @@ module MEM_WB(
               MEM_WB_rs_out,
               MEM_WB_CAL_res_out,
               MEM_WB_data_out } <= 
+            {151{~flush}} &
             { MEM_WB_PC_in, 
               MEM_WB_inst_in, 
               MEM_WB_CTRL_EX_in,

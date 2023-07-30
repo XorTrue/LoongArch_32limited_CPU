@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2023/07/23 17:34:36
+// Create Date: 2023/07/30 19:58:45
 // Design Name: 
-// Module Name: Predict_2bit
+// Module Name: Return_Buffer
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -18,24 +18,33 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
+`include "CPU_Parameter.vh"
 
-
-module Predict_2bit(
+module Return_Buffer(
     input clk, rst,
-    input EX_Branch,
-    output predict_out
+    input we,
+    //input [`CACHE_LINE_BTYE-1:0] addr,
+    input [`CACHE_LINE_WIDTH-1:0] in,
+    output reg [`CACHE_LINE_WIDTH-1:0] out,
+    output reg [`WORD-1:0] inst_from_ret
     );
-
-    reg [1:0] predict = 0;
 
     always@(posedge clk)
     begin
         if(rst)
-            predict <= 2'b00;
+            out <= 0;       
         else
-            predict <= predict + {1'b0, EX_Branch};
+        begin
+            if(we)
+                out <= in;
+            else
+                out <= out;
+        end
     end
 
-    assign predict_out = predict[1];
-    
+    always@(*)
+    begin
+        inst_from_ret = out;
+    end
+
 endmodule

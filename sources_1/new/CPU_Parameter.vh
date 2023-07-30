@@ -5,6 +5,16 @@
 //the reset value of PC
 `define PC_RST 32'h8000_0000 
 
+`define RAM_WIDTH 32
+`define RAM_DEPTH 256
+`define RAM_DEPTH_LOG 8
+`define RAM_PERFORMANCE "LOW_LATENCY"
+
+`define CACHE_WAY 2
+`define CACHE_LINE_BTYE 4
+`define CAHCE_LINE_BTYE_LOG 2
+`define CACHE_LINE_WIDTH 32
+ 
 `define DOUBLE 64
 `define WORD   32
 `define HALF   16
