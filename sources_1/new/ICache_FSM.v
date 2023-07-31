@@ -78,11 +78,11 @@ module ICache_FSM(
             if(pipeline_valid)
             begin
                 rbuf_we = 1;
-                next_state = FIND;
+                next_state = CMP;
             end    
         end
-        else if(curr_state == FIND)
-            next_state = CMP;
+        /*else if(curr_state == FIND)
+            next_state = CMP;*/
         else if(curr_state == CMP)
         begin
             if(~|hit)
