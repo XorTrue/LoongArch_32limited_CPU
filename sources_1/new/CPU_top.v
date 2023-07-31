@@ -62,7 +62,7 @@ module CPU_top(
     wire [`WORD-1:0] load_addr;
     wire memory_valid_for_ICache;
     wire [`WORD-1:0] inst_ICache;
-    ICache ICache(
+    /*ICache ICache(
         .clk(clk),
         .rst(rst),
         .stall(stall_from_DCache | stall_from_Load),
@@ -75,7 +75,23 @@ module CPU_top(
         .pipeline_ready(ICache_ready),
         .memory_valid(memory_valid_for_ICache),
         .inst(inst_ICache)
+    );*/
+
+    wire we_w_i = 0;
+    wire [`RAM_DEPTH_LOG-1:0] addr_r_i = PC_IF0[`RAM_DEPTH_LOG+1:2];
+    BRAM_SDPSC #(`WORD, `RAM_DEPTH, `RAM_PERFORMANCE, "D:/XorTrue/LoongArch/Project/Project.srcs/inst_init.txt") 
+    I_MEM_test(
+        .clk(clk),
+        .addr_w(0),
+        .addr_r(addr_r_i),
+        .din_w(0),
+        .we_w(we_w_i),
+        .en_r(1),
+        .dout_r(inst_ICache)
     );
+    assign ICache_ready = 1;
+
+
 
     wire predict;
     Predict_2bit Predict_2bit(
@@ -171,7 +187,7 @@ module CPU_top(
     wire [`WORD-1:0] src_WB;
     wire CAL_MUL;
     wire [`WORD-1:0] ALU_res;
-    wire [`WORD*2-1:0] src_fwd;
+    wire [`WORD*3-1:0] src_fwd;
     EX EX(
         .clk(clk), .rst(rst),
         .PC(PC_EX),
@@ -191,8 +207,8 @@ module CPU_top(
         .src_fwd(src_fwd)
     );
 
-    wire [`WORD-1:0] src1_fwd, src2_fwd;
-    assign {src1_fwd, src2_fwd} = src_fwd;
+    wire [`WORD-1:0] src0_fwd, src1_fwd, src2_fwd;
+    assign {src2_fwd, src1_fwd, src0_fwd} = src_fwd;
     wire sign;
     wire [`WORD-1:0] mul00, mul01, mul10;
     MUL_ST0 MUL_ST0(
@@ -248,9 +264,26 @@ module CPU_top(
 
     wire DCache_ready;
     wire [`WORD-1:0] data_DCache;
-    DCache DCache(
+    /*DCache DCache(
 
+    );*/
+
+
+    wire [`RAM_DEPTH_LOG-1:0] addr_r_d = ALU_res[`RAM_DEPTH_LOG+1:2];
+    wire [`RAM_DEPTH_LOG-1:0] addr_w_d = ALU_res[`RAM_DEPTH_LOG+1:2];
+    wire en_r_d = (inst_EX[31:24] == 8'b00101000);
+    wire we_w_d = (inst_EX[31:24] == 8'b00101001); 
+    BRAM_SDPSC #(`WORD, `RAM_DEPTH, `RAM_PERFORMANCE, "")
+    D_MEM_test(
+        .clk(clk),
+        .addr_w(addr_w_d),
+        .addr_r(addr_r_d),
+        .din_w(src0_fwd),
+        .we_w(we_w_d),
+        .en_r(en_r_d),
+        .dout_r(data_DCache)
     );
+    assign DCache_ready = 1;
 
     wire REG_wrtie_MEM;
     wire [`WORD-1:0] CAL_res;

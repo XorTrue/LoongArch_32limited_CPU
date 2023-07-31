@@ -39,7 +39,7 @@ module EX(
     output [`WORD-1:0] EX_PC_out,
     output CAL_MUL,
     output [`WORD-1:0] ALU_out,
-    output [`WORD*2-1:0] src_fwd
+    output [`WORD*3-1:0] src_fwd
     );
 
     wire [1:0] fwd0, fwd1, fwd2;
@@ -64,7 +64,7 @@ module EX(
         .in0(src2), .in1(src_from_WB), .in2(src_from_MEM),
         .out(src2_fwd)
     );
-    assign src_fwd = {src2_fwd, src1_fwd};
+    assign src_fwd = {src2_fwd, src1_fwd, src0_fwd};
 
     wire [1:0] REG_WB;
     wire [1:0] MEM;
