@@ -21,8 +21,22 @@
 `include "CPU_Parameter.vh"
 
 module CPU_top(
-    input clk, rst
-
+    input clk, rst,
+    output [`WORD-1:0] PC_IF0_out,
+    output Pre_Branch_out,
+    output [`WORD-1:0] Pre_PC_out,
+    output EX_Branch_out,
+    output [`WORD-1:0] EX_PC_out,
+    output [`WORD-1:0] PC_IF1_out,
+    output [`WORD-1:0] inst_IF1_out,
+    output [`WORD-1:0] PC_ID_out,
+    output [`WORD-1:0] inst_ID_out,
+    output [`WORD-1:0] PC_EX_out,
+    output [`WORD-1:0] inst_EX_out,
+    output [`WORD-1:0] PC_MEM_out,
+    output [`WORD-1:0] inst_MEM_out,
+    output [`WORD-1:0] PC_WB_out,
+    output [`WORD-1:0] inst_WB_out
     );
 
     wire Pre_Branch, EX_Branch;
@@ -86,7 +100,7 @@ module CPU_top(
         .addr_r(addr_r_i),
         .din_w(0),
         .we_w(we_w_i),
-        .en_r(1),
+        .en_r(~(rst | stall_from_Load)),
         .dout_r(inst_ICache)
     );
     assign ICache_ready = 1;
@@ -359,5 +373,21 @@ module CPU_top(
         .flush_from_Load(flush_from_Load)
     );
 
+
+    assign PC_IF0_out = PC_IF0;
+    assign PC_IF1_out = PC_IF1;
+    assign inst_IF1_out = inst_ICache;
+    assign PC_ID_out = PC_ID;
+    assign inst_ID_out = inst_ID;
+    assign PC_EX_out = PC_EX;
+    assign inst_EX_out = inst_EX;
+    assign PC_MEM_out = PC_MEM;
+    assign inst_MEM_out = inst_MEM;
+    assign PC_WB_out = PC_WB;
+    assign inst_WB_out = inst_WB;
+    assign Pre_Branch_out = Pre_Branch;
+    assign Pre_PC_out = Pre_PC;
+    assign EX_Branch_out = EX_Branch;
+    assign EX_PC_out = EX_PC;
 
 endmodule

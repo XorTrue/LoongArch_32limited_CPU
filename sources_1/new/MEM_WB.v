@@ -30,12 +30,12 @@ module MEM_WB(
     input [`WORD-1:0] MEM_WB_CAL_res_in,
     input [`WORD-1:0] MEM_WB_data_in,
     
-    output reg [`WORD-1:0] MEM_WB_PC_out,
-    output reg [`WORD-1:0] MEM_WB_inst_out,
-    output reg [7:0] MEM_WB_CTRL_EX_out,
-    output reg [`REG_LOG*3-1:0] MEM_WB_rs_out,
-    output reg [`WORD-1:0] MEM_WB_CAL_res_out,
-    output reg [`WORD-1:0] MEM_WB_data_out
+    output reg [`WORD-1:0] MEM_WB_PC_out = 0,
+    output reg [`WORD-1:0] MEM_WB_inst_out = 0,
+    output reg [7:0] MEM_WB_CTRL_EX_out = 0,
+    output reg [`REG_LOG*3-1:0] MEM_WB_rs_out = 0,
+    output reg [`WORD-1:0] MEM_WB_CAL_res_out = 0,
+    output reg [`WORD-1:0] MEM_WB_data_out = 0
     );
 
     assign flush = MEM_WB_flush_from_DCache;

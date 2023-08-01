@@ -28,8 +28,8 @@ module IF0_IF1(
     input [`WORD-1:0] IF0_IF1_PC_in,
     input ICache_valid_in,
 
-    output reg [`WORD-1:0] IF0_IF1_PC_out,
-    output reg ICache_valid_out
+    output reg [`WORD-1:0] IF0_IF1_PC_out = 0,
+    output reg ICache_valid_out = 0
     );
 
     wire stall = IF0_IF1_stall_from_Load;
@@ -39,7 +39,7 @@ module IF0_IF1(
         begin
             { IF0_IF1_PC_out, 
               ICache_valid_out } <= 
-            { 32'b0, 1'b0 };
+            { `PC_RST, 1'b0 };
         end
         else
         begin

@@ -25,7 +25,7 @@ module PC(
     input rst,
     input [`WORD-1:0] PC_in,
     input PC_stall,
-    output reg [`WORD-1:0] PC_out
+    output reg [`WORD-1:0] PC_out = 0
     );
 
     always@(posedge clk)

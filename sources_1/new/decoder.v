@@ -31,15 +31,15 @@ module Decoder(
     );
 
     wire [`REG_LOG-1:0] rs0, rs1, rs2;
-    assign rs2 = (~|inst[31:21] & inst[20]) ? 5'b0 : inst[14:10];
+    assign rs2 = (~|inst[31:21] & inst[20]) ? inst[14:10] : 5'b0;
     assign rs1 = ((~|inst[31:29] & inst[28]) | (inst[31:27] == 5'b01010)) ? 5'b0 : inst[9:5]; 
-    assign rs0 = (inst[31:25] == 5'b01010) ? {4'b0, inst[26]} : inst[4:0];
+    assign rs0 = (inst[31:27] == 5'b01010) ? {4'b0, inst[26]} : inst[4:0];
     assign rs = {rs2, rs1, rs0};
 
     wire REG_write = 
         (inst[31:26] == 6'b010011) |    // JIRL
         (inst[31:26] == 6'b010101) |    // BL
-        ~inst[30];                      // 其他非跳转指令
+        (~inst[30] & (inst[31:24] != 8'b00101001));  // 其他非跳转且 非store 指令
     /*reg [1:0] RES_MUX;
     always@(*)
     begin
@@ -61,10 +61,10 @@ module Decoder(
     wire is_MUL = (inst[31:15] == 17'b0000_0000_0001_1100_0); // MUL 指令
     wire ALU_in0_MUX, ALU_in1_MUX;
     assign ALU_in0_MUX = 
-        (inst[31:28] == 4'b0001) | // 加载立即数指令
+        (inst[31:27] == 5'b00011) | // 加载立即数指令
         (inst[31:30] == 2'b01)   ; // 跳转指令
     assign ALU_in1_MUX = (inst[31:20] != 12'b000000000001); // 有立即数
-    assign EX = {is_branch, is_MUL, ALU_in0_MUX, ALU_in1_MUX};
+    assign EX = {is_branch, is_MUL, ALU_in1_MUX, ALU_in0_MUX};
 
     always@(*) //ALU_opcode
     begin
@@ -87,7 +87,7 @@ module Decoder(
                 4'b1010: ALU_opcode = `ALU_OR;  //OR
                 4'b1011: ALU_opcode = `ALU_XOR; //XOR
                 4'b1111: ALU_opcode = `ALU_SRL; //SRL
-                default: ALU_opcode = 4'h0;  //其他移位指令
+                default: ALU_opcode = 4'h0;  //其他运算指令
             endcase
         end
         else

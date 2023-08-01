@@ -69,10 +69,10 @@ module EX(
     wire [1:0] REG_WB;
     wire [1:0] MEM;
     wire [3:0] EX;
-    assign {MEM, EX, REG_WB} = CTRL_EX;
+    assign {REG_WB, MEM, EX} = CTRL_EX;
     wire is_branch, is_MUL;
     wire ALU_in0_MUX, ALU_in1_MUX;
-    assign {is_branch, is_MUL, ALU_in0_MUX, ALU_in1_MUX} = EX;
+    assign {is_branch, is_MUL, ALU_in1_MUX, ALU_in0_MUX} = EX;
     assign CAL_MUL = is_MUL;
     
     wire [`WORD-1:0] IMM, OFFS;

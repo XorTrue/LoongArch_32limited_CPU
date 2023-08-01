@@ -33,14 +33,14 @@ module EX_MEM(
     input sign_in,
     input [`WORD*3-1:0] mul_tmp_in,
 
-    output reg [`WORD-1:0] EX_MEM_PC_out,
-    output reg [`WORD-1:0] EX_MEM_inst_out,
-    output reg [7:0] EX_MEM_CTRL_EX_out,
-    output reg CAL_SEL_out,
-    output reg [`WORD-1:0] ALU_res_out,
-    output reg [`REG_LOG*3-1:0] EX_MEM_rs_out,
-    output reg sign_out,
-    output reg [`WORD*3-1:0] mul_tmp_out
+    output reg [`WORD-1:0] EX_MEM_PC_out = 0,
+    output reg [`WORD-1:0] EX_MEM_inst_out = 0,
+    output reg [7:0] EX_MEM_CTRL_EX_out = 0,
+    output reg CAL_SEL_out = 0,
+    output reg [`WORD-1:0] ALU_res_out = 0,
+    output reg [`REG_LOG*3-1:0] EX_MEM_rs_out = 0,
+    output reg sign_out = 0,
+    output reg [`WORD*3-1:0] mul_tmp_out = 0
     );
 
     wire stall = EX_MEM_stall_from_DCache;

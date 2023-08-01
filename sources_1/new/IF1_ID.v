@@ -32,8 +32,8 @@ module IF1_ID(
     input [`WORD-1:0] IF1_ID_PC_in,
     input [`WORD-1:0] IF1_ID_inst_in,
 
-    output reg [`WORD-1:0] IF1_ID_PC_out,
-    output reg [`WORD-1:0] IF1_ID_inst_out
+    output reg [`WORD-1:0] IF1_ID_PC_out = 0,
+    output reg [`WORD-1:0] IF1_ID_inst_out = 0
     );
 
     wire stall = IF1_ID_stall_from_DCache | 

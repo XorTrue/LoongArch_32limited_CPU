@@ -47,7 +47,7 @@ module ID(
         .EX(EX)
     );
     assign opcode = {ALU_opcode, CMP_opcode};
-    assign CTRL_EX = {REG_WB, MEM, EX};
+    assign CTRL_EX = |inst ? {REG_WB, MEM, EX} : 0;
     
     wire [`REG_LOG-1:0] rs0, rs1, rs2;
     assign {rs2, rs1, rs0} = rs;
@@ -61,7 +61,7 @@ module ID(
         .rs0(rs0),   .rs1(rs1),   .rs2(rs2),
         .src0(src0), .src1(src1), .src2(src2)
     );
-    assign src = {src0, src1, src2};
+    assign src = {src2, src1, src0};
 
     wire [`WORD-1:0] IMM, OFFS;
     IMM_OFFS IMM_OFFS(

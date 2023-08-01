@@ -29,7 +29,7 @@ module Forwarding(
     );
 
     wire [`REG_LOG-1:0] rs0_EX, rs1_EX, rs2_EX;
-    assign {rs0_EX, rs1_EX, rs2_EX} = rs_EX;
+    assign {rs2_EX, rs1_EX, rs0_EX} = rs_EX;
 
     wire [1:0] fwd0, fwd1, fwd2;
     assign fwd0[1] = REG_write_MEM & |rd_MEM & (rs0_EX == rd_MEM);

@@ -6,8 +6,8 @@
 `define PC_RST 32'h8000_0000 
 
 `define RAM_WIDTH 32
-`define RAM_DEPTH 256
-`define RAM_DEPTH_LOG 8
+`define RAM_DEPTH 64
+`define RAM_DEPTH_LOG 6
 `define RAM_PERFORMANCE "LOW_LATENCY"
 
 `define CACHE_WAY 2

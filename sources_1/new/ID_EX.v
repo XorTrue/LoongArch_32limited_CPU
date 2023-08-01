@@ -35,13 +35,13 @@ module ID_EX(
     input [`WORD*3-1:0] ID_EX_src_in,
     input [`WORD*2-1:0] ID_EX_CONST_in,
 
-    output reg [`WORD-1:0] ID_EX_PC_out,
-    output reg [`WORD-1:0] ID_EX_inst_out,
-    output reg [`OPCODE_LEN*2-1:0] ID_EX_opcode_out,
-    output reg [7:0] ID_EX_CTRL_EX_out,
-    output reg [`REG_LOG*3-1:0] ID_EX_rs_out,
-    output reg [`WORD*3-1:0] ID_EX_src_out,
-    output reg [`WORD*2-1:0] ID_EX_CONST_out
+    output reg [`WORD-1:0] ID_EX_PC_out = 0,
+    output reg [`WORD-1:0] ID_EX_inst_out = 0,
+    output reg [`OPCODE_LEN*2-1:0] ID_EX_opcode_out = 0,
+    output reg [7:0] ID_EX_CTRL_EX_out = 0,
+    output reg [`REG_LOG*3-1:0] ID_EX_rs_out = 0,
+    output reg [`WORD*3-1:0] ID_EX_src_out = 0,
+    output reg [`WORD*2-1:0] ID_EX_CONST_out = 0
     
     );
     

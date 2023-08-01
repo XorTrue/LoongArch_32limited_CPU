@@ -30,7 +30,9 @@ module EX_Branch(
     output [`WORD-1:0] EX_PC_out
     );
 
-    assign EX_Branch_out = is_branch & (branch ^ predict);
-    assign EX_PC_out = predict ? PC_Branch : PC_EX + 32'h4;
+    //assign EX_Branch_out = is_branch & (branch ^ predict);
+    //assign EX_PC_out = predict ? PC_Branch : PC_EX + 32'h4;
+    assign EX_Branch_out = is_branch & branch;
+    assign EX_PC_out = EX_Branch_out ? PC_Branch : PC_EX + 32'h4;
 
 endmodule

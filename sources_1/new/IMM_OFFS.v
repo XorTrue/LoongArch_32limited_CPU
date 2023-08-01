@@ -26,18 +26,19 @@ module IMM_OFFS(
     output [`WORD-1:0] offs
     );
  
-    wire [`WORD-1:0] si12  = { {21{inst[21]}}, inst[20:10] };
-    wire [`WORD-1:0] ui12  = { {20{1'b0}},     inst[21:10] };
-    wire [`WORD-1:0] si20  = { {13{inst[24]}}, inst[23: 5] };
-    wire [`WORD-1:0] ui5   = { {27{1'b0}},     inst[14:10] };
-    wire [`WORD-1:0] usi12 = { {21{inst[24] & inst[21]}}, inst[20:10] };
+    wire [`WORD-1:0] si12    = { {21{inst[21]}}, inst[20:10] };
+    wire [`WORD-1:0] ui12    = { {20{1'b0}},     inst[21:10] };
+    wire [`WORD-1:0] si20_0  = { inst[24:5], 12'b0 };
+    wire [`WORD-1:0] si20_1  = { {13{inst[24]}}, inst[23: 5] };
+    wire [`WORD-1:0] ui5     = { {27{1'b0}},     inst[14:10] };
+    wire [`WORD-1:0] usi12   = { {21{~inst[24] & inst[21]}}, inst[20:10] };
     
     always@(*)
     begin
         casex({inst[30:28], inst[25], inst[22]})
             5'b1xxxx : imm = 32'h4; // 跳转指令
             5'b01xxx : imm = si12;  // 访存指令
-            5'b001xx : imm = si20;  // 加载立即数指令
+            5'b001xx : imm = inst[27] ? si20_1 : si20_0;  // 加载立即数指令
             5'b0001x : imm = usi12; // 整型立即数运算指令
             5'b00001 : imm = ui5;   // 移位指令
             default : imm = `UNDEFINE;
@@ -45,8 +46,8 @@ module IMM_OFFS(
     end
 
     assign offs = (inst[31:27] == 5'b01010) ? 
-        { {15{inst[25]}}, inst[24:10], 2'b00 } :
-        { { 5{inst[ 9]}}, inst[ 8: 0], inst[25: 10], 2'b00 } ;
+        { { 5{inst[ 9]}}, inst[ 8: 0], inst[25: 10], 2'b00 } :
+        { {15{inst[25]}}, inst[24:10], 2'b00 };
 
     /*always@(*)
     begin
