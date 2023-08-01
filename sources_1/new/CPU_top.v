@@ -93,6 +93,7 @@ module CPU_top(
 
     wire we_w_i = 0;
     wire [`RAM_DEPTH_LOG-1:0] addr_r_i = PC_IF0[`RAM_DEPTH_LOG+1:2];
+    wire [`WORD-1:0] inst_ICache_i;
     BRAM_SDPSC #(`WORD, `RAM_DEPTH, `RAM_PERFORMANCE, "D:/XorTrue/LoongArch/Project/Project.srcs/inst_init.txt") 
     I_MEM_test(
         .clk(clk),
@@ -100,12 +101,19 @@ module CPU_top(
         .addr_r(addr_r_i),
         .din_w(0),
         .we_w(we_w_i),
-        .en_r(~(rst | stall_from_Load)),
-        .dout_r(inst_ICache)
+        .en_r(~stall_from_Load),
+        .dout_r(inst_ICache_i)
     );
     assign ICache_ready = 1;
-
-
+    reg [`WORD-1:0] inst_ICache_o;
+    always@(negedge clk)
+    begin
+        if(rst | Pre_Branch)
+            inst_ICache_o <= 0;
+        else
+            inst_ICache_o <= inst_ICache_i;
+    end
+    assign inst_ICache = inst_ICache_o;
 
     wire predict;
     Predict_2bit Predict_2bit(
@@ -137,7 +145,7 @@ module CPU_top(
         .IF1_ID_flush_from_EX_Branch(EX_Branch),
         .IF1_ID_stall_from_Load(stall_from_Load),
         .IF1_ID_flush_from_ICache(flush_from_ICache),
-        .IF1_ID_flush_from_Pre_Branch(Pre_Branch),
+        //.IF1_ID_flush_from_Pre_Branch(Pre_Branch),
         .IF1_ID_PC_in(PC_IF1),
         .IF1_ID_PC_out(PC_ID),
         .IF1_ID_inst_in(inst_ICache),

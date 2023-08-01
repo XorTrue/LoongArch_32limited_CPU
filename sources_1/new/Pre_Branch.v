@@ -29,16 +29,16 @@ module Pre_Branch(
     output [`WORD-1:0] Pre_PC_out
     );
 
-    /*assign Pre_Branch_out = 
+    assign Pre_Branch_out = 
         ICache_ready & 
-        ( (predict & (inst[31:30] == 2'b01)) |
-          (inst[31:27] == 5'b01010) | 
-          (inst[31:28] == 4'b0100 ) );*/
-    assign Pre_Branch_out = 0;
+        ( (inst[31:27] == 5'b01010) | //B & BL
+          (inst[31:28] == 4'b0100 ) | //JIRL
+          (predict & (inst[31:30] == 2'b01)) );
+    //assign Pre_Branch_out = 0;
 
-    wire offs = (inst[31:27] == 5'b01010) ? 
-                    { {15{inst[25]}}, inst[24:10], 2'b00 } :
-                    { { 5{inst[ 9]}}, inst[ 8: 0], inst[25: 10], 2'b00 } ;
+    wire [`WORD-1:0] offs = (inst[31:27] == 5'b01010) ? 
+                    { { 5{inst[ 9]}}, inst[ 8: 0], inst[25: 10], 2'b00 } :
+                    { {15{inst[25]}}, inst[24:10], 2'b00 } ;
 
     assign Pre_PC_out = PC + offs;
 
