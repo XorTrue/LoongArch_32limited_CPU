@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2023/07/30 19:46:24
+// Create Date: 2023/08/01 23:16:03
 // Design Name: 
-// Module Name: ICache_FSM
+// Module Name: DCache_FSM
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -20,32 +20,37 @@
 //////////////////////////////////////////////////////////////////////////////////
 `include "CPU_Parameter.vh"
 
-module ICache_FSM(
-    input clk,
-    input rst,
-    input [`CACHE_WAY-1:0] hit,
-    input way_to_replace,
-    input pipeline_valid,
+
+module DCache_FSM #(
+    parameter TAG_WIDTH = `WORD-1-`RAM_DEPTH_LOG-`CAHCE_LINE_BTYE_LOG+1
+)(  input clk, rst,
+    input hit,
+    input [1:0] is_dmem,
     input memory_ready,
-    input [`WORD-1:0] addr,
-    output reg [`WORD-1:0] load_addr = 0,
-    output reg select_way = 0,
+
     output reg rbuf_we = 0,
     output reg ret_we = 0,
     output reg pipeline_ready = 0,
-    output reg [`CACHE_WAY-1:0] Cache_we_w = 0,
-    output reg is_inst_from_mem = 0,
-    output reg memory_valid = 0
+    output reg Cache_we_w = 0,
+    output reg is_data_from_mem = 0,
+    output reg is_direct = 0,
+    output reg memory_valid = 0,
+    output reg memory_for_store = 0
     );
+
+    wire is_load, is_store;
+    assign {is_store, is_store} = is_dmem;
 
     parameter NEW = 0;
     parameter LOAD = 1;
     parameter WRITE = 2;
-    parameter CMP = 3;
-    parameter FIND = 4;
+    parameter CMP_L = 3;
+    parameter STORE = 4;
+    parameter CMP_S = 5;
+    parameter DIRECT = 6;
 
-    reg [4:0] curr_state = NEW;
-    reg [4:0] next_state = NEW;
+    reg [3:0] curr_state = NEW;
+    reg [3:0] next_state = NEW;
 
     always@(posedge clk)
     begin
@@ -55,41 +60,32 @@ module ICache_FSM(
             curr_state <= next_state;
     end
 
-    always@(posedge clk)
-    begin
-        if(curr_state == CMP && hit == 2'b00)
-            load_addr <= addr;
-        else
-            load_addr <= load_addr;
-    end
-
     always@(*)
     begin
-        select_way = 0;
         rbuf_we = 0;
         ret_we = 0;
         pipeline_ready = 0;
         Cache_we_w = 0;
-        is_inst_from_mem = 0;
+        is_data_from_mem = 0;
+        is_direct = 0;
         memory_valid = 0;
+        memory_for_store = 0;
         next_state = curr_state;
         if(curr_state == NEW)
         begin
-            if(pipeline_valid)
-            begin
+            if(|is_dmem)
                 rbuf_we = 1;
-                next_state = CMP;
-            end    
+            if(is_load)
+                next_state = CMP_L;
+            else if(is_store)
+                next_state = CMP_S;
         end
-        /*else if(curr_state == FIND)
-            next_state = CMP;*/
-        else if(curr_state == CMP)
+        else if(curr_state == CMP_L)
         begin
-            if(~|hit)
+            if(hit)
                 next_state = LOAD;
             else
             begin
-                select_way = hit[1];
                 pipeline_ready = 1;
                 next_state = NEW;
             end
@@ -105,13 +101,34 @@ module ICache_FSM(
         end
         else if(curr_state == WRITE)
         begin
-            is_inst_from_mem = 1;
+            is_data_from_mem = 1;
             pipeline_ready = 1;
-            Cache_we_w[way_to_replace] = hit;
+            Cache_we_w = 1;
             next_state = NEW;
         end
+        else if(curr_state == CMP_S)
+        begin
+            if(hit)
+                next_state = DIRECT;
+            else
+            begin
+                curr_state = STORE;
+                pipeline_ready = 1;
+            end
+        end
+        else if(curr_state == DIRECT)
+        begin
+            is_direct = 1;
+            Cache_we_w = 1;
+            next_state = STORE;
+        end
+        else if(curr_state == STORE)
+        begin
+            memory_valid = 1;
+            memory_for_store = 1;
+            if(memory_ready)
+                next_state = NEW;
+        end
     end
-
-
 
 endmodule

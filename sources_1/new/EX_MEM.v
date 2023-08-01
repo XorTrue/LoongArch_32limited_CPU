@@ -32,6 +32,7 @@ module EX_MEM(
     input [`REG_LOG*3-1:0] EX_MEM_rs_in,
     input sign_in,
     input [`WORD*3-1:0] mul_tmp_in,
+    input [1:0] is_dmem_in,
 
     output reg [`WORD-1:0] EX_MEM_PC_out = 0,
     output reg [`WORD-1:0] EX_MEM_inst_out = 0,
@@ -40,7 +41,8 @@ module EX_MEM(
     output reg [`WORD-1:0] ALU_res_out = 0,
     output reg [`REG_LOG*3-1:0] EX_MEM_rs_out = 0,
     output reg sign_out = 0,
-    output reg [`WORD*3-1:0] mul_tmp_out = 0
+    output reg [`WORD*3-1:0] mul_tmp_out = 0,
+    output reg [1:0] is_dmem_out = 0
     );
 
     wire stall = EX_MEM_stall_from_DCache;
@@ -56,8 +58,9 @@ module EX_MEM(
               ALU_res_out,
               EX_MEM_rs_out,
               sign_out,
-              mul_tmp_out } <= 
-            { `PC_RST, 32'h0, 8'h0, 1'b0, 32'h0, 15'h0, 1'b0, 96'h0};
+              mul_tmp_out,
+              is_dmem_out } <= 
+            { `PC_RST, 32'h0, 8'h0, 1'b0, 32'h0, 15'h0, 1'b0, 96'h0, 2'b0};
         end    
         else
         begin
@@ -70,7 +73,8 @@ module EX_MEM(
                 ALU_res_out,
                 EX_MEM_rs_out,
                 sign_out,
-                mul_tmp_out } <=
+                mul_tmp_out,
+                is_dmem_out } <=
               { EX_MEM_PC_out, 
                 EX_MEM_inst_out, 
                 EX_MEM_CTRL_EX_out, 
@@ -78,7 +82,8 @@ module EX_MEM(
                 ALU_res_out,
                 EX_MEM_rs_out,
                 sign_out,
-                mul_tmp_out };
+                mul_tmp_out,
+                is_dmem_out };
             end
             else
             begin
@@ -89,7 +94,8 @@ module EX_MEM(
                 ALU_res_out,
                 EX_MEM_rs_out,
                 sign_out,
-                mul_tmp_out } <=
+                mul_tmp_out,
+                is_dmem_out } <=
               { EX_MEM_PC_in, 
                 EX_MEM_inst_in, 
                 EX_MEM_CTRL_EX_in, 
@@ -97,7 +103,8 @@ module EX_MEM(
                 ALU_res_in,
                 EX_MEM_rs_in,
                 sign_in,
-                mul_tmp_in };
+                mul_tmp_in,
+                is_dmem_in };
             end
         end
     end

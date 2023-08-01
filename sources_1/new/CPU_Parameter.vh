@@ -14,6 +14,8 @@
 `define CACHE_LINE_BTYE 4
 `define CAHCE_LINE_BTYE_LOG 2
 `define CACHE_LINE_WIDTH 32
+`define CAHCE_WORD_NUM 1
+`define CAHCE_WAIT_CYCLE 3
  
 `define DOUBLE 64
 `define WORD   32

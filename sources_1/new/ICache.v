@@ -28,7 +28,7 @@ module ICache(
     input [`WORD-1:0] PC,
     input pipeline_valid,
     input memory_ready,
-    input [`CACHE_LINE_WIDTH-1:0] data_from_mem,
+    input [`CACHE_LINE_WIDTH-1:0] inst_from_mem,
 
     output [`WORD-1:0] load_addr,
     output pipeline_ready,
@@ -51,22 +51,22 @@ module ICache(
     Return_Buffer Return_Buffer(
         .clk(clk), .rst(rst),
         .we(ret_we),
-        .in(data_from_mem),
+        .in(inst_from_mem),
         .out(data_w),
         .inst(inst_from_ret)
     );
 
 
-    parameter TAG_WIDTH = `WORD-1-`RAM_DEPTH_LOG-`CAHCE_LINE_BTYE_LOG;
+    parameter TAG_WIDTH = `WORD-1-`RAM_DEPTH_LOG-`CAHCE_LINE_BTYE_LOG+1;
     wire [`RAM_DEPTH_LOG-1:0] addr_r = 
         PC[`RAM_DEPTH_LOG+`CAHCE_LINE_BTYE_LOG-1:`CAHCE_LINE_BTYE_LOG];
     wire [`RAM_DEPTH_LOG-1:0] addr_w = 
         req_addr[`RAM_DEPTH_LOG+`CAHCE_LINE_BTYE_LOG-1:`CAHCE_LINE_BTYE_LOG];
     wire [`CACHE_WAY-1:0] Cache_we_w;
     wire [`CACHE_LINE_WIDTH-1:0] Cache_data_r [0:`CACHE_WAY-1];
-    wire [TAG_WIDTH:0] tag_w = 
+    wire [TAG_WIDTH-1:0] tag_w = 
         req_addr[`WORD-1:`RAM_DEPTH_LOG+`CAHCE_LINE_BTYE_LOG];
-    wire [TAG_WIDTH:0] tag_r [`CACHE_WAY-1:0];
+    wire [TAG_WIDTH-1:0] tag_r [`CACHE_WAY-1:0];
     wire [`CACHE_WAY-1:0] hit;
     genvar i;
     generate
@@ -79,7 +79,7 @@ module ICache(
                 .addr_r(addr_r),
                 .din_w(data_w),
                 .we_w(Cache_we_w[i]),
-                .en_r(1),
+                .en_r(~stall),
                 .dout_r(Cache_data_r[i])
             );
             BRAM_SDPSC #(TAG_WIDTH, `RAM_DEPTH, `RAM_PERFORMANCE, "")  
@@ -89,7 +89,7 @@ module ICache(
                 .addr_r(addr_r),
                 .din_w(tag_w),
                 .we_w(Cache_we_w[i]),
-                .en_r(1),
+                .en_r(~stall),
                 .dout_r(tag_r[i])
             );
             assign hit[i] = (tag_r[i] == tag_w);
@@ -103,8 +103,18 @@ module ICache(
     wire [`WORD-1:0] inst_from_cache;
     assign inst_from_cache = way_data;
 
-    wire is_data_from_mem;
-    assign inst = is_data_from_mem ? inst_from_ret : inst_from_cache;
+    wire is_inst_from_mem;
+    wire [`WORD-1:0] inst_i = is_inst_from_mem ? inst_from_ret : inst_from_cache;
+    reg [`WORD-1:0] inst_reg = 0;
+    always@(negedge clk)
+    begin
+        if(rst | flush)
+            inst_reg <= 0;
+        else
+            inst_reg <= inst_i;
+    end
+    assign inst = inst_reg;
+
 
     wire way_to_replace;
     Way_Select_LRU Way_Select_LRU(
@@ -129,7 +139,7 @@ module ICache(
         .ret_we(ret_we),
         .pipeline_ready(pipeline_ready),
         .Cache_we_w(Cache_we_w),
-        .is_data_from_mem(is_data_from_mem),
+        .is_inst_from_mem(is_inst_from_mem),
         .memory_valid(memory_valid)
     );
 

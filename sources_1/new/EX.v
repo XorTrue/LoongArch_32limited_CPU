@@ -23,6 +23,7 @@
 module EX(
     input clk, rst,
     input [`WORD-1:0] PC,
+    input [`WORD-1:0] inst,
     input [`OPCODE_LEN*2-1:0] opcode,
     input [7:0] CTRL_EX,
     input [`REG_LOG*3-1:0] rs,
@@ -39,7 +40,8 @@ module EX(
     output [`WORD-1:0] EX_PC_out,
     output CAL_MUL,
     output [`WORD-1:0] ALU_out,
-    output [`WORD*3-1:0] src_fwd
+    output [`WORD*3-1:0] src_fwd,
+    output [1:0] is_dmem
     );
 
     wire [1:0] fwd0, fwd1, fwd2;
@@ -117,5 +119,9 @@ module EX(
         .PC_Branch(CMP_PC_out),
         .EX_PC_out(EX_PC_out)
     );
+
+    wire is_load  = (inst[31:24] == 8'b00101000);
+    wire is_store = (inst[31:24] == 8'b00101001);
+    assign is_dmem = {is_store, is_load};
 
 endmodule

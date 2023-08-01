@@ -72,11 +72,11 @@ module CPU_top(
 
     wire ICache_ready;
     wire memory_ready_for_ICache;
-    wire [`CACHE_LINE_WIDTH-1:0] data_from_mem;
-    wire [`WORD-1:0] load_addr;
+    wire [`CACHE_LINE_WIDTH-1:0] inst_from_mem;
+    wire [`WORD-1:0] load_addr_inst;
     wire memory_valid_for_ICache;
     wire [`WORD-1:0] inst_ICache;
-    /*ICache ICache(
+    ICache ICache(
         .clk(clk),
         .rst(rst),
         .stall(stall_from_DCache | stall_from_Load),
@@ -84,14 +84,14 @@ module CPU_top(
         .PC(PC_IF0),
         .pipeline_valid(ICache_valid_in),
         .memory_ready(memory_ready_for_ICache),
-        .data_from_mem(data_from_mem),
-        .load_addr(load_addr),
+        .inst_from_mem(inst_from_mem),
+        .load_addr(load_addr_inst),
         .pipeline_ready(ICache_ready),
         .memory_valid(memory_valid_for_ICache),
         .inst(inst_ICache)
-    );*/
+    );
 
-    wire we_w_i = 0;
+    /*wire we_w_i = 0;
     wire [`RAM_DEPTH_LOG-1:0] addr_r_i = PC_IF0[`RAM_DEPTH_LOG+1:2];
     wire [`WORD-1:0] inst_ICache_i;
     BRAM_SDPSC #(`WORD, `RAM_DEPTH, `RAM_PERFORMANCE, "D:/XorTrue/LoongArch/Project/Project.srcs/inst_init.txt") 
@@ -113,7 +113,7 @@ module CPU_top(
         else
             inst_ICache_o <= inst_ICache_i;
     end
-    assign inst_ICache = inst_ICache_o;
+    assign inst_ICache = inst_ICache_o;*/
 
     wire predict;
     Predict_2bit Predict_2bit(
@@ -210,9 +210,11 @@ module CPU_top(
     wire CAL_MUL;
     wire [`WORD-1:0] ALU_res;
     wire [`WORD*3-1:0] src_fwd;
+    wire [1:0] is_dmem;
     EX EX(
         .clk(clk), .rst(rst),
         .PC(PC_EX),
+        .inst(inst_EX),
         .opcode(opcode_EX),
         .CTRL_EX(CTRL_EX_EX),
         .rs(rs_EX),
@@ -226,7 +228,8 @@ module CPU_top(
         .EX_PC_out(EX_PC),
         .CAL_MUL(CAL_MUL),
         .ALU_out(ALU_res),
-        .src_fwd(src_fwd)
+        .src_fwd(src_fwd),
+        .is_dmem(is_dmem)
     );
 
     wire [`WORD-1:0] src0_fwd, src1_fwd, src2_fwd;
@@ -252,6 +255,7 @@ module CPU_top(
     wire [`REG_LOG*3-1:0] rs_MEM;
     wire sign_reg;
     wire [`WORD*3-1:0] mul_tmp_reg;
+    wire [1:0] is_dmem_MEM;
     EX_MEM EX_MEM(
         .clk(clk), .rst(rst),
         .EX_MEM_stall_from_DCache(stall_from_DCache),
@@ -270,7 +274,9 @@ module CPU_top(
         .sign_in(sign),
         .sign_out(sign_reg),
         .mul_tmp_in(mul_tmp),
-        .mul_tmp_out(mul_tmp_reg)
+        .mul_tmp_out(mul_tmp_reg),
+        .is_dmem_in(is_dmem),
+        .is_dmem_out(is_dmem_MEM)
     );
 
     wire [`WORD-1:0] mu00_in, mul01_in, mul10_in;
@@ -312,8 +318,9 @@ module CPU_top(
     wire flush_from_DCache;
     MEM MEM(
         .clk(clk), .rst(rst),
-        .PC(PC_MEM),
-        .inst(inst_MEM),
+        //.PC(PC_MEM),
+        //.inst(inst_MEM),
+        .is_dmem(is_dmem_MEM),
         .CAL_SEL(CAL_SEL),
         .ALU_res(ALU_res_MEM),
         .MUL_res(mul_res),

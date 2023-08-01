@@ -22,8 +22,8 @@
 
 module MEM(
     input clk, rst,
-    input [`WORD-1:0] PC,
-    input [`WORD-1:0] inst,
+    //input [`WORD-1:0] PC,
+    input [1:0] is_dmem,
     input CAL_SEL,
     input [`WORD-1:0] ALU_res,
     input [`WORD-1:0] MUL_res,
@@ -53,7 +53,7 @@ module MEM(
     );
 
     CTRL_from_DCache CTRL_from_DCache(
-        .inst(inst),
+        .DCache_valid(|is_dmem),
         .DCache_ready(DCache_ready),
         .stall_from_DCache(stall_from_DCache),
         .flush_from_DCache(flush_from_DCache)
