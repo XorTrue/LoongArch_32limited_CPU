@@ -62,7 +62,7 @@ module DCache(
         .we(ret_we),
         .in(data_from_mem),
         .out(data_w),
-        .inst(data_from_ret)
+        .ret(data_from_ret)
     );
 
     parameter TAG_WIDTH = `WORD-1-`RAM_DEPTH_LOG-`CACHE_LINE_BYTE_LOG+1;

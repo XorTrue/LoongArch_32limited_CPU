@@ -23,7 +23,7 @@
 module IO(
     input is_io,
     input is_state,
-    input is_dmem,
+    input [1:0] is_dmem,
     input [`WORD-1:0] r_data,
     input [`WORD-1:0] data_to_t,
     input ready,

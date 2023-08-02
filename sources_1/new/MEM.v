@@ -82,7 +82,7 @@ module MEM(
         .data_out(t_data)
     );
 
-    SEL2 MEM_or_IO(
+    SEL_2 MEM_or_IO(
         .sel(is_io),
         .in0(data_DCache),
         .in1(t_data),

@@ -29,7 +29,7 @@ module Way_Select_LRU(
     );
 
     reg [`RAM_DEPTH-1:0] count = 0;
-    always@(clk)
+    always@(posedge clk)
     begin
         if(way_sel_update)
         begin

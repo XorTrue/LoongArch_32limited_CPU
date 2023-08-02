@@ -45,7 +45,7 @@ module EX_MEM(
     output reg sign_out = 0,
     output reg [`WORD*3-1:0] mul_tmp_out = 0,
     output reg [1:0] is_dmem_out = 0,
-    output reg io_info_out = 0,
+    output reg [1:0] io_info_out = 0,
     output reg [`WORD-1:0] data_to_t_out
     );
 

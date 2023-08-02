@@ -51,9 +51,10 @@ module ICache(
     Return_Buffer Return_Buffer(
         .clk(clk), .rst(rst),
         .we(ret_we),
+        .addr(req_addr[`CACHE_LINE_BYTE_LOG-1:2]),
         .in(inst_from_mem),
         .out(data_w),
-        .inst(inst_from_ret)
+        .ret(inst_from_ret)
     );
 
 

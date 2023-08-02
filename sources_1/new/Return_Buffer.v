@@ -26,7 +26,7 @@ module Return_Buffer(
     input [`CACHE_LINE_BYTE_LOG-2-1:0] addr,
     input [`CACHE_LINE_WIDTH-1:0] in,
     output reg [`CACHE_LINE_WIDTH-1:0] out,
-    output reg [`WORD-1:0] inst_from_ret
+    output reg [`WORD-1:0] ret
     );
 
     always@(posedge clk)
@@ -45,11 +45,11 @@ module Return_Buffer(
     always@(*)
     begin
         case(addr)
-            2'b00: inst_from_ret = out[`WORD-1:0];
-            2'b01: inst_from_ret = out[`WORD*2-1:`WORD];
-            2'b10: inst_from_ret = out[`WORD*3-1:`WORD*2];
-            2'b11: inst_from_ret = out[`WORD*4-1:`WORD*3];
-            default: inst_from_ret = 0;
+            2'b00: ret = out[`WORD-1:0];
+            2'b01: ret = out[`WORD*2-1:`WORD];
+            2'b10: ret = out[`WORD*3-1:`WORD*2];
+            2'b11: ret = out[`WORD*4-1:`WORD*3];
+            default: ret = 0;
         endcase
     end
 

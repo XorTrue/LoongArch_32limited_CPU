@@ -22,6 +22,28 @@
 
 module CPU_top(
     input clk, rst,
+
+    input ext_uart_ready,
+    input ext_uart_busy,
+    input [`WORD-1:0] r_data,
+    output ext_uart_clear,
+    output ext_uart_start,
+    output [`WORD-1:0] t_data,
+
+    output base_ram_ce_n,
+    output base_ram_oe_n,
+    output base_ram_we_n,
+    output [19:0] base_ram_addr,
+    inout [31:0] base_ram_data,
+
+    output ext_ram_ce_n,
+    output ext_ram_oe_n,
+    output ext_ram_we_n,
+    output [19:0] ext_ram_addr,
+    input  [31:0] ext_ram_data_in,
+    output [31:0] ext_ram_data_out,
+
+
     output [`WORD-1:0] PC_IF0_out,
     output Pre_Branch_out,
     output [`WORD-1:0] Pre_PC_out,
@@ -73,7 +95,7 @@ module CPU_top(
     wire ICache_ready;
     wire memory_ready_for_ICache;
     wire [`CACHE_LINE_WIDTH-1:0] inst_from_mem;
-    wire [`WORD-1:0] load_addr_inst;
+    wire [`WORD-1:0] load_inst_addr;
     wire memory_valid_for_ICache;
     wire [`WORD-1:0] inst_ICache;
     ICache ICache(
@@ -85,7 +107,7 @@ module CPU_top(
         .pipeline_valid(ICache_valid_in),
         .memory_ready(memory_ready_for_ICache),
         .inst_from_mem(inst_from_mem),
-        .load_addr(load_addr_inst),
+        .load_addr(load_inst_addr),
         .pipeline_ready(ICache_ready),
         .memory_valid(memory_valid_for_ICache),
         .inst(inst_ICache)
@@ -300,6 +322,12 @@ module CPU_top(
 
     wire DCache_ready;
     wire [`WORD-1:0] data_DCache;
+    wire memory_valid_for_DCache = 0;
+    wire memory_ready_for_DCache;
+    wire memory_for_store = 0;
+    wire [`WORD-1:0] load_store_data_addr = 0;
+    wire [`WORD-1:0] data_to_store = 0;
+    wire [`CACHE_LINE_WIDTH-1:0] data_from_mem;
     /*DCache DCache(
 
     );*/
@@ -339,13 +367,13 @@ module CPU_top(
         .stall_from_DCache(stall_from_DCache),
         .flush_from_DCache(flush_from_DCache),
         .data_DCache(data_DCache),
-        .r_data(),
+        .r_data(r_data),
         .data_to_t(data_to_t_MEM),
-        .ready(),
-        .busy(),
-        .clear(),
-        .start(),
-        .t_data(),
+        .ready(ext_uart_ready),
+        .busy(ext_uart_busy),
+        .clear(ext_uart_clear),
+        .start(ext_uart_start),
+        .t_data(t_data),
         .data_out(data_MEM)
     );
     assign src_MEM = CAL_res;
@@ -405,6 +433,47 @@ module CPU_top(
         .flush_from_Load(flush_from_Load)
     );
 
+
+    Cache_MEM Cache_MEM(
+        .clk(clk), .rst(rst),
+
+        .memory_valid_for_ICache(memory_valid_for_ICache),
+        .load_inst_addr(load_inst_addr),
+        .memory_ready_for_ICache(memory_ready_for_ICache),
+        .inst_from_mem(inst_from_mem),
+
+
+        .memory_valid_for_DCache(memory_valid_for_DCache),
+        .memory_for_store(memory_for_store),
+        .load_store_data_addr(load_store_data_addr),
+        .data_to_store(data_to_store),
+        .memory_ready_for_DCache(memory_ready_for_DCache),
+        .data_from_mem(data_from_mem),
+
+        .base_ram_ce_n(base_ram_ce_n),
+        .base_ram_oe_n(base_ram_oe_n),
+        .base_ram_we_n(base_ram_we_n),
+        .base_ram_addr(base_ram_addr),
+        .base_ram_data(base_ram_data),
+
+        .ext_ram_ce_n(ext_ram_ce_n),
+        .ext_ram_oe_n(ext_ram_oe_n),
+        .ext_ram_we_n(ext_ram_we_n),
+        .ext_ram_addr(ext_ram_addr),
+        .ext_ram_data_in(ext_ram_data_in),
+        .ext_ram_data_out(ext_ram_data_out)
+    );
+
+    BRAM_SDPSC #(`WORD, `RAM_DEPTH, `RAM_PERFORMANCE, "D:/XorTrue/LoongArch/Project/Project.srcs/inst_init.txt") 
+    I_MEM_test(
+        .clk(clk),
+        .addr_w(0),
+        .addr_r(base_ram_addr[`RAM_DEPTH_LOG+1:2]),
+        .din_w(0),
+        .we_w(~base_ram_we_n),
+        .en_r(~base_ram_oe_n),
+        .dout_r(base_ram_data)
+    );
 
     assign PC_IF0_out = PC_IF0;
     assign PC_IF1_out = PC_IF1;
