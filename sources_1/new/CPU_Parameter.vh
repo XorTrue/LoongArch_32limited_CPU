@@ -11,11 +11,13 @@
 `define RAM_PERFORMANCE "LOW_LATENCY"
 
 `define CACHE_WAY 2
-`define CACHE_LINE_BTYE 4
-`define CAHCE_LINE_BTYE_LOG 2
-`define CACHE_LINE_WIDTH 32
-`define CAHCE_WORD_NUM 1
-`define CAHCE_WAIT_CYCLE 3
+`define CACHE_WORD_NUM 4
+`define CACHE_LINE_BYTE 16
+`define CACHE_LINE_BYTE_LOG 4
+`define CACHE_LINE_WIDTH (32<<2)
+`define CACHE_WAIT_CYCLE 3
+
+
  
 `define DOUBLE 64
 `define WORD   32

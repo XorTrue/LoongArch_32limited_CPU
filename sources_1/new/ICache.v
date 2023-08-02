@@ -57,15 +57,15 @@ module ICache(
     );
 
 
-    parameter TAG_WIDTH = `WORD-1-`RAM_DEPTH_LOG-`CAHCE_LINE_BTYE_LOG+1;
+    parameter TAG_WIDTH = `WORD-1-`RAM_DEPTH_LOG-`CACHE_LINE_BYTE_LOG+1;
     wire [`RAM_DEPTH_LOG-1:0] addr_r = 
-        PC[`RAM_DEPTH_LOG+`CAHCE_LINE_BTYE_LOG-1:`CAHCE_LINE_BTYE_LOG];
+        PC[`RAM_DEPTH_LOG+`CACHE_LINE_BYTE_LOG-1:`CACHE_LINE_BYTE_LOG];
     wire [`RAM_DEPTH_LOG-1:0] addr_w = 
-        req_addr[`RAM_DEPTH_LOG+`CAHCE_LINE_BTYE_LOG-1:`CAHCE_LINE_BTYE_LOG];
+        req_addr[`RAM_DEPTH_LOG+`CACHE_LINE_BYTE_LOG-1:`CACHE_LINE_BYTE_LOG];
     wire [`CACHE_WAY-1:0] Cache_we_w;
     wire [`CACHE_LINE_WIDTH-1:0] Cache_data_r [0:`CACHE_WAY-1];
     wire [TAG_WIDTH-1:0] tag_w = 
-        req_addr[`WORD-1:`RAM_DEPTH_LOG+`CAHCE_LINE_BTYE_LOG];
+        req_addr[`WORD-1:`RAM_DEPTH_LOG+`CACHE_LINE_BYTE_LOG];
     wire [TAG_WIDTH-1:0] tag_r [`CACHE_WAY-1:0];
     wire [`CACHE_WAY-1:0] hit;
     genvar i;
@@ -100,8 +100,17 @@ module ICache(
     wire [`CACHE_LINE_WIDTH-1:0] way_data;
     assign way_data = Cache_data_r[select_way];
 
-    wire [`WORD-1:0] inst_from_cache;
-    assign inst_from_cache = way_data;
+    reg [`WORD-1:0] inst_from_cache;
+    always@(*)
+    begin
+        case(req_addr[`CACHE_LINE_BYTE_LOG-1:2])
+            2'b00: inst_from_cache = way_data[`WORD-1:0];
+            2'b01: inst_from_cache = way_data[`WORD*2-1:`WORD];
+            2'b10: inst_from_cache = way_data[`WORD*3-1:`WORD*2];
+            2'b11: inst_from_cache = way_data[`WORD*4-1:`WORD*3];
+            default: inst_from_cache = 0;
+        endcase
+    end
 
     wire is_inst_from_mem;
     wire [`WORD-1:0] inst_i = is_inst_from_mem ? inst_from_ret : inst_from_cache;
@@ -132,8 +141,8 @@ module ICache(
         .way_to_replace(way_to_replace),
         .pipeline_valid(pipeline_valid),
         .memory_ready(memory_ready),
-        .addr(req_addr),
-        .load_addr(load_addr),
+        //.addr(req_addr),
+        //.load_addr(load_addr),
         .select_way(select_way),
         .rbuf_we(rbuf_we),
         .ret_we(ret_we),
@@ -142,5 +151,7 @@ module ICache(
         .is_inst_from_mem(is_inst_from_mem),
         .memory_valid(memory_valid)
     );
+
+    assign load_addr = req_addr;
 
 endmodule

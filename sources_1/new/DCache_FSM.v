@@ -20,15 +20,14 @@
 //////////////////////////////////////////////////////////////////////////////////
 `include "CPU_Parameter.vh"
 
-
-module DCache_FSM #(
-    parameter TAG_WIDTH = `WORD-1-`RAM_DEPTH_LOG-`CAHCE_LINE_BTYE_LOG+1
-)(  input clk, rst,
+module DCache_FSM(  
+    input clk, rst,
     input hit,
     input [1:0] is_dmem,
     input memory_ready,
 
     output reg rbuf_we = 0,
+    output reg en_r = 0,
     output reg ret_we = 0,
     output reg pipeline_ready = 0,
     output reg Cache_we_w = 0,
@@ -63,6 +62,7 @@ module DCache_FSM #(
     always@(*)
     begin
         rbuf_we = 0;
+        en_r = 0;
         ret_we = 0;
         pipeline_ready = 0;
         Cache_we_w = 0;
@@ -74,7 +74,10 @@ module DCache_FSM #(
         if(curr_state == NEW)
         begin
             if(|is_dmem)
+            begin
                 rbuf_we = 1;
+                en_r = 1;
+            end
             if(is_load)
                 next_state = CMP_L;
             else if(is_store)

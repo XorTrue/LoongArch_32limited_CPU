@@ -211,6 +211,7 @@ module CPU_top(
     wire [`WORD-1:0] ALU_res;
     wire [`WORD*3-1:0] src_fwd;
     wire [1:0] is_dmem;
+    wire [1:0] io_info;
     EX EX(
         .clk(clk), .rst(rst),
         .PC(PC_EX),
@@ -229,7 +230,8 @@ module CPU_top(
         .CAL_MUL(CAL_MUL),
         .ALU_out(ALU_res),
         .src_fwd(src_fwd),
-        .is_dmem(is_dmem)
+        .is_dmem(is_dmem),
+        .io_info(io_info)
     );
 
     wire [`WORD-1:0] src0_fwd, src1_fwd, src2_fwd;
@@ -256,6 +258,8 @@ module CPU_top(
     wire sign_reg;
     wire [`WORD*3-1:0] mul_tmp_reg;
     wire [1:0] is_dmem_MEM;
+    wire [1:0] io_info_MEM;
+    wire [`WORD-1:0] data_to_t_MEM;
     EX_MEM EX_MEM(
         .clk(clk), .rst(rst),
         .EX_MEM_stall_from_DCache(stall_from_DCache),
@@ -276,7 +280,11 @@ module CPU_top(
         .mul_tmp_in(mul_tmp),
         .mul_tmp_out(mul_tmp_reg),
         .is_dmem_in(is_dmem),
-        .is_dmem_out(is_dmem_MEM)
+        .is_dmem_out(is_dmem_MEM),
+        .io_info_in(io_info),
+        .io_info_out(io_info_MEM),
+        .data_to_t_in(src1_fwd),
+        .data_to_t_out(data_to_t_MEM)
     );
 
     wire [`WORD-1:0] mu00_in, mul01_in, mul10_in;
@@ -316,10 +324,10 @@ module CPU_top(
     wire REG_wrtie_MEM;
     wire [`WORD-1:0] CAL_res;
     wire flush_from_DCache;
+    wire [`WORD-1:0] data_MEM;
     MEM MEM(
         .clk(clk), .rst(rst),
-        //.PC(PC_MEM),
-        //.inst(inst_MEM),
+        .io_info(io_info_MEM),
         .is_dmem(is_dmem_MEM),
         .CAL_SEL(CAL_SEL),
         .ALU_res(ALU_res_MEM),
@@ -329,7 +337,16 @@ module CPU_top(
         .REG_write_MEM(REG_write_MEM),
         .DCache_ready(DCache_ready),
         .stall_from_DCache(stall_from_DCache),
-        .flush_from_DCache(flush_from_DCache)
+        .flush_from_DCache(flush_from_DCache),
+        .data_DCache(data_DCache),
+        .r_data(),
+        .data_to_t(data_to_t_MEM),
+        .ready(),
+        .busy(),
+        .clear(),
+        .start(),
+        .t_data(),
+        .data_out(data_MEM)
     );
     assign src_MEM = CAL_res;
 
@@ -352,7 +369,7 @@ module CPU_top(
         .MEM_WB_rs_out(rs_WB),
         .MEM_WB_CAL_res_in(CAL_res),
         .MEM_WB_CAL_res_out(CAL_res_WB),
-        .MEM_WB_data_in(data_DCache),
+        .MEM_WB_data_in(data_MEM),
         .MEM_WB_data_out(data_WB)
     );
 

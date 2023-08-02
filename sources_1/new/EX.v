@@ -41,7 +41,8 @@ module EX(
     output CAL_MUL,
     output [`WORD-1:0] ALU_out,
     output [`WORD*3-1:0] src_fwd,
-    output [1:0] is_dmem
+    output [1:0] is_dmem,
+    output [1:0] io_info
     );
 
     wire [1:0] fwd0, fwd1, fwd2;
@@ -123,5 +124,10 @@ module EX(
     wire is_load  = (inst[31:24] == 8'b00101000);
     wire is_store = (inst[31:24] == 8'b00101001);
     assign is_dmem = {is_store, is_load};
+
+    wire is_io = (ALU_out == 32'hBFD003F8 ||
+                  ALU_out == 32'hBFD003FC );
+    wire is_io_state = inst[2];
+    assign io_info = {is_io_state, is_io};
 
 endmodule

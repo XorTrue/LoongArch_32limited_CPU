@@ -27,8 +27,8 @@ module ICache_FSM(
     input way_to_replace,
     input pipeline_valid,
     input memory_ready,
-    input [`WORD-1:0] addr,
-    output reg [`WORD-1:0] load_addr = 0,
+    //input [`WORD-1:0] addr,
+    //output reg [`WORD-1:0] load_addr = 0,
     output reg select_way = 0,
     output reg rbuf_we = 0,
     output reg ret_we = 0,
@@ -55,13 +55,13 @@ module ICache_FSM(
             curr_state <= next_state;
     end
 
-    always@(posedge clk)
+    /*always@(posedge clk)
     begin
         if(curr_state == CMP && hit == 2'b00)
             load_addr <= addr;
         else
             load_addr <= load_addr;
-    end
+    end*/
 
     always@(*)
     begin
@@ -81,8 +81,6 @@ module ICache_FSM(
                 next_state = CMP;
             end    
         end
-        /*else if(curr_state == FIND)
-            next_state = CMP;*/
         else if(curr_state == CMP)
         begin
             if(~|hit)
@@ -107,7 +105,7 @@ module ICache_FSM(
         begin
             is_inst_from_mem = 1;
             pipeline_ready = 1;
-            Cache_we_w[way_to_replace] = hit;
+            Cache_we_w[way_to_replace] = 1;
             next_state = NEW;
         end
     end
