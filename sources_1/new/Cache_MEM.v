@@ -50,17 +50,13 @@ module Cache_MEM(
     output reg ext_ram_oe_n = 1,
     output reg ext_ram_we_n = 1,
     output reg [19:0] ext_ram_addr = 0,
-    input  [31:0] ext_ram_data_in,
-    output [31:0] ext_ram_data_out
+    input  [31:0] ext_ram_data_r,
+    output [31:0] ext_ram_data_w
     );
 
     wire stall = stall_from_Load;
     wire flush = EX_Branch | Pre_Branch;
 
-    reg [2:0] cache_cnt = 3'b100;
-    reg [`CACHE_LINE_WIDTH-1:0] addr_cache = 0;
-    reg [`CACHE_LINE_WIDTH-1:0] store_cache = 0;
-    assign ext_ram_data_out = store_cache[31:0];
     reg [3:0] num_cnt = 0;
     reg [3:0] wait_cnt = 0;
 
@@ -71,26 +67,27 @@ module Cache_MEM(
     parameter LOAD = 4;
     parameter WAIT = 5;
     parameter RET = 6;
-
     reg [3:0] curr_state = IDLE;
     reg [3:0] next_state = IDLE;
-    always@(posedge clk)
-    begin
-        if(rst | ((flush | stall) && ~memory_valid_for_DCache))
-            curr_state <= IDLE;
-        else
-            curr_state <= next_state;
-    end
 
     parameter WAIT_S = 0;
     parameter WAIT_D = 1;
     parameter WAIT_I = 2;
     reg [3:0] wait_state = 0;
 
-    wire write_cache_empty = (cache_cnt == 0);
     wire is_base = (load_store_data_addr >= 32'h8000_0000 && 
                     load_store_data_addr <  32'h8040_0000);
-    wire is_empty = |addr_cache[`WORD-1:0];
+
+    assign ext_ram_data_w = data_to_store;
+
+    always@(posedge clk)
+    begin
+        if(rst | (flush && ~memory_valid_for_DCache) | (wait_state == WAIT_I && memory_valid_for_DCache))
+            curr_state <= IDLE;
+        else
+            curr_state <= next_state;
+    end
+
     always@(*)
     begin
         next_state = curr_state;
@@ -101,28 +98,14 @@ module Cache_MEM(
                 if(~memory_valid_for_DCache && 
                     memory_valid_for_ICache)
                     next_state = DECODE;
-                else if(memory_ready_for_DCache)
-                begin
-                    if(memory_for_store && ~write_cache_full)
-                        next_state = CACHE;
-                    else if(~write_cache_empty)
-                        next_state = DECODE;
-                    else if(memory_valid_for_DCache)
-                        next_state = DECODE;
-                end
+                else if(memory_valid_for_DCache)
+                    next_state = DECODE;
             end
         end
-        else if(curr_state == CACHE)
-            next_state = RET;
         else if(curr_state == DECODE)
         begin
             if(wait_state == WAIT_S)
-            begin
-                if(is_empty)
-                    next_state = IDLE;
-                else 
-                    next_state = STORE;
-            end
+                next_state = STORE;
             else
                 next_state = LOAD;
         end
@@ -139,7 +122,7 @@ module Cache_MEM(
         else if(curr_state == STORE)
         begin
             if(num_cnt == 1)
-                next_state = IDLE;
+                next_state = RET;
             else
                 next_state = WAIT;
         end
@@ -174,22 +157,19 @@ module Cache_MEM(
                 wait_state <= WAIT_I;
             else
             begin
-                if(~write_cache_empty)
-                    wait_state <= WAIT_S;
-                else if(memory_valid_for_DCache)
-                    wait_state <= WAIT_D;
+                if(memory_valid_for_DCache)
+                begin
+                    if(memory_for_store)
+                        wait_state <= WAIT_S;
+                    else
+                        wait_state <= WAIT_D;
+                end
             end
-        end
-        else if(curr_state == CACHE)
-        begin
-            addr_cache <= {load_store_data_addr, addr_cache[`WORD*4-1:`WORD*3]};
-            store_cache <= {data_to_store, store_cache[`WORD*4-1:`WORD*3]};
-            cache_cnt <= cache_cnt + 1;
         end
         else if(curr_state == DECODE)
         begin
             if(wait_state == WAIT_S)
-                ext_ram_addr <= addr_cache[19:0];
+                ext_ram_addr <= load_store_data_addr[19:0];
             else if(wait_state == WAIT_D)
             begin
                 base_ram_addr <= load_store_data_addr[19:0];
@@ -219,10 +199,7 @@ module Cache_MEM(
             if(num_cnt == 1)
             begin
                 ext_ram_ce_n <= 1;
-                ext_ram_we_n <= 1;
-                cache_cnt <= cache_cnt - 1;
-                addr_cache  <= {32'h0, addr_cache[`WORD*4-1:`WORD]};
-                store_cache <= {32'h0, store_cache[`WORD*4-1:`WORD]};                
+                ext_ram_we_n <= 1;             
             end
             else 
             begin
@@ -239,7 +216,7 @@ module Cache_MEM(
             inst_from_mem <= {base_ram_data, inst_from_mem[`WORD*4-1:`WORD]};
             data_from_mem <= is_base ? 
                 {base_ram_data, data_from_mem[`WORD*4-1:`WORD]} :
-                {ext_ram_data_in, data_from_mem[`WORD*4-1:`WORD]};
+                {ext_ram_data_r, data_from_mem[`WORD*4-1:`WORD]};
             if(num_cnt == `CACHE_WORD_NUM)
             begin
                 base_ram_ce_n <= 1;
@@ -269,7 +246,5 @@ module Cache_MEM(
                 memory_ready_for_DCache <= 1;
         end
     end
-    
-    assign write_cache_full = (cache_cnt == 4);
 
 endmodule

@@ -26,7 +26,7 @@ module DCache(
     input [1:0] is_dmem,
     input [`WORD-1:0] addr,
     input [`WORD-1:0] data_to_store,
-    input pipeline_valid,
+    //input pipeline_valid,
     input memory_ready,
     input [`CACHE_LINE_WIDTH-1:0] data_from_mem,
 
@@ -53,6 +53,14 @@ module DCache(
         .in(data_to_store),
         .out(req_data)
     );
+    wire [1:0] req_dmem;
+    Request_Buffer #(2) LS_Buffer(
+        .clk(clk), .rst(rst),
+        .we(rbuf_we),
+        .in(is_dmem & {2{~is_io}}),
+        .out(req_dmem)
+    );
+
 
     wire ret_we;
     wire [`CACHE_LINE_WIDTH-1:0] data_w;
@@ -60,6 +68,7 @@ module DCache(
     Return_Buffer Return_Buffer(
         .clk(clk), .rst(rst),
         .we(ret_we),
+        .addr(req_addr[`CACHE_LINE_BYTE_LOG-1:2]),
         .in(data_from_mem),
         .out(data_w),
         .ret(data_from_ret)
@@ -78,7 +87,7 @@ module DCache(
     wire hit;
 
     wire en_r;
-    wire [`WORD-1:0] data_w_act;
+    wire [`CACHE_LINE_WIDTH-1:0] data_w_act;
     BRAM_SDPSC #(`CACHE_LINE_WIDTH, `RAM_DEPTH, `RAM_PERFORMANCE, "")  
     Cache_Data (
         .clk(clk), 
@@ -123,8 +132,8 @@ module DCache(
         case(req_addr[`CACHE_LINE_BYTE_LOG-1:2])
             2'b00: data_direct = {Cache_data_r[`WORD*4-1:`WORD], req_data};
             2'b01: data_direct = {Cache_data_r[`WORD*4-1:`WORD*2], req_data, Cache_data_r[`WORD-1:0]};
-            2'b10: data_direct = {Cache_data_r[`WORD*4-1:`WORD*3], req_data, Cache_data_r[`WORD*2-1:`WORD]};
-            2'b11: data_direct = {req_data, Cache_data_r[`WORD*3-1:`WORD*2]};
+            2'b10: data_direct = {Cache_data_r[`WORD*4-1:`WORD*3], req_data, Cache_data_r[`WORD*2-1:0]};
+            2'b11: data_direct = {req_data, Cache_data_r[`WORD*3-1:0]};
             default: data_direct = 0;
         endcase
     end
@@ -133,7 +142,7 @@ module DCache(
     DCache_FSM DCache_FSM(
         .clk(clk), .rst(rst),
         .hit(hit),
-        .is_dmem(is_dmem & {2{~is_io}}),
+        .is_dmem(req_dmem),
         .memory_ready(memory_ready),
         .rbuf_we(rbuf_we),
         .en_r(en_r),

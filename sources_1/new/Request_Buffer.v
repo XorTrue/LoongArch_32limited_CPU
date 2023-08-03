@@ -20,11 +20,13 @@
 //////////////////////////////////////////////////////////////////////////////////
 `include "CPU_Parameter.vh"
 
-module Request_Buffer(
+module Request_Buffer #(
+    parameter WIDTH = `WORD
+)(
     input clk, rst,
     input we,
-    input [`WORD-1:0] in,
-    output reg [`WORD-1:0] out = 0
+    input [WIDTH-1:0] in,
+    output reg [WIDTH-1:0] out = 0
     );
     always@(posedge clk)
     begin
