@@ -28,8 +28,6 @@ module ICache_FSM(
     input way_to_replace,
     input pipeline_valid,
     input memory_ready,
-    //input [`WORD-1:0] addr,
-    //output reg [`WORD-1:0] load_addr = 0,
     output reg select_way = 0,
     output reg rbuf_we = 0,
     output reg ret_we = 0,
@@ -43,8 +41,7 @@ module ICache_FSM(
     parameter NEW = 0;
     parameter LOAD = 1;
     parameter WRITE = 2;
-    parameter CMP = 3;
-    parameter IDLE = 4;
+    parameter IDLE = 3;
 
     reg [4:0] curr_state = NEW;
     reg [4:0] next_state = NEW;
@@ -58,14 +55,6 @@ module ICache_FSM(
         else
             curr_state <= next_state;
     end
-
-    /*always@(posedge clk)
-    begin
-        if(curr_state == CMP && hit == 2'b00)
-            load_addr <= addr;
-        else
-            load_addr <= load_addr;
-    end*/
 
     always@(*)
     begin
@@ -86,11 +75,6 @@ module ICache_FSM(
         end
         if(curr_state == NEW)
         begin
-            //if(pipeline_valid)
-            //begin
-            //rbuf_we = 1;
-            //next_state = CMP;
-            //end
             if(pipeline_valid)
             begin
                 if(~|hit)
@@ -106,18 +90,6 @@ module ICache_FSM(
                 end
             end
         end
-        /*else if(curr_state == CMP)
-        begin            
-            if(~|hit)
-                next_state = LOAD;
-            else
-            begin
-                rbuf_we = 1;
-                select_way = hit[1];
-                pipeline_ready = 1;
-                next_state = CMP;
-            end
-        end*/
         else if(curr_state == LOAD)
         begin
             memory_valid = 1;
@@ -125,8 +97,6 @@ module ICache_FSM(
             begin
                 ret_we = 1;
                 Cache_we_w[way_to_replace] = 1;
-                //pipeline_ready = 1;
-                //next_state = WRITE;
                 next_state = WRITE;
             end
         end
@@ -135,11 +105,8 @@ module ICache_FSM(
             is_inst_from_mem = 1;
             pipeline_ready = 1;
             rbuf_we = 1;
-            //Cache_we_w[way_to_replace] = 1;
             next_state = NEW;
         end
     end
-
-
 
 endmodule

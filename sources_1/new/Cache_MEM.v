@@ -61,12 +61,11 @@ module Cache_MEM(
     reg [3:0] wait_cnt = 0;
 
     parameter IDLE = 0;
-    parameter CACHE = 1;
-    parameter DECODE = 2;
-    parameter STORE = 3;
-    parameter LOAD = 4;
-    parameter WAIT = 5;
-    parameter RET = 6;
+    parameter DECODE = 1;
+    parameter STORE = 2;
+    parameter LOAD = 3;
+    parameter WAIT = 4;
+    parameter RET = 5;
     reg [3:0] curr_state = IDLE;
     reg [3:0] next_state = IDLE;
 

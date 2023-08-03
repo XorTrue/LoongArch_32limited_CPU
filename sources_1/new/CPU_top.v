@@ -40,8 +40,8 @@ module CPU_top(
     output ext_ram_oe_n,
     output ext_ram_we_n,
     output [19:0] ext_ram_addr,
-    input  [31:0] ext_ram_data_in,
-    output [31:0] ext_ram_data_out,
+    output [31:0] ext_ram_data_r,
+    output [31:0] ext_ram_data_w,
 
 
     output [`WORD-1:0] PC_IF0_out,
@@ -67,7 +67,7 @@ module CPU_top(
     wire stall_from_DCache;
     wire stall_from_Load;
     wire flush_from_Load;
-    wire fix_branch = 0;
+    wire fix_branch;
     wire [`WORD-1:0] PC_IF0;
     IF0 IF0(
         .clk(clk), .rst(rst),
@@ -103,9 +103,9 @@ module CPU_top(
     wire memory_ready_for_ICache;
     wire [`CACHE_LINE_WIDTH-1:0] inst_from_mem;
     wire [`WORD-1:0] load_inst_addr;
-    wire memory_valid_for_ICache = 0;
+    wire memory_valid_for_ICache;
     wire [`WORD-1:0] inst_ICache;
-    /*ICache ICache(
+    ICache ICache(
         .clk(clk),
         .rst(rst),
         .ICache_stall_from_DCache(stall_from_DCache),
@@ -121,9 +121,9 @@ module CPU_top(
         .memory_valid(memory_valid_for_ICache),
         .fix_branch(fix_branch),
         .inst(inst_ICache)
-    );*/
+    );
 
-    wire we_w_i = 0;
+    /*wire we_w_i = 0;
     wire [`RAM_DEPTH_LOG-1:0] addr_r_i = PC_IF0[`RAM_DEPTH_LOG+1:2];
     wire [`WORD-1:0] inst_ICache_i;
     BRAM_SDPSC #(`WORD, `RAM_DEPTH, `RAM_PERFORMANCE, "D:/XorTrue/LoongArch/Project/Project.srcs/inst_init.txt") 
@@ -145,7 +145,7 @@ module CPU_top(
         else
             inst_ICache_o <= inst_ICache_i;
     end
-    assign inst_ICache = inst_ICache_o;
+    assign inst_ICache = inst_ICache_o;*/
 
     wire predict;
     Predict_2bit Predict_2bit(
@@ -340,7 +340,7 @@ module CPU_top(
     wire [`CACHE_LINE_WIDTH-1:0] data_from_mem;
     DCache DCache(
         .clk(clk), .rst(rst),
-        .is_io(io_info),
+        .is_io(io_info[0]),
         .is_dmem(is_dmem),
         .addr(ALU_res),
         .data_to_store(src0_fwd),
@@ -486,8 +486,8 @@ module CPU_top(
         .ext_ram_oe_n(ext_ram_oe_n),
         .ext_ram_we_n(ext_ram_we_n),
         .ext_ram_addr(ext_ram_addr),
-        .ext_ram_data_r(ext_ram_data_out),
-        .ext_ram_data_w(ext_ram_data_in)
+        .ext_ram_data_r(ext_ram_data_r),
+        .ext_ram_data_w(ext_ram_data_w)
     );
 
     BRAM_SDPSC #(`WORD, `RAM_DEPTH, `RAM_PERFORMANCE, "D:/XorTrue/LoongArch/Project/Project.srcs/inst_init.txt") 
@@ -506,10 +506,10 @@ module CPU_top(
         .clk(clk),
         .addr_w(ext_ram_addr[`RAM_DEPTH_LOG+1:2]),
         .addr_r(ext_ram_addr[`RAM_DEPTH_LOG+1:2]),
-        .din_w(ext_ram_data_in),
+        .din_w(ext_ram_data_w),
         .we_w(~ext_ram_we_n),
         .en_r(~ext_ram_oe_n),
-        .dout_r(ext_ram_data_out)
+        .dout_r(ext_ram_data_r)
     );
 
     assign PC_IF0_out = PC_IF0;
