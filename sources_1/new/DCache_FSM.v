@@ -47,6 +47,7 @@ module DCache_FSM(
     parameter STORE = 4;
     parameter CMP_S = 5;
     parameter DIRECT = 6;
+    parameter IDLE = 7;
 
     reg [3:0] curr_state = NEW;
     reg [3:0] next_state = NEW;
@@ -54,7 +55,7 @@ module DCache_FSM(
     always@(posedge clk)
     begin
         if(rst)
-            curr_state <= NEW;
+            curr_state <= IDLE;
         else
             curr_state <= next_state;
     end
@@ -71,19 +72,50 @@ module DCache_FSM(
         memory_valid = 0;
         memory_for_store = 0;
         next_state = curr_state;
-        if(curr_state == NEW)
+        if(curr_state == IDLE)
         begin
             if(|is_dmem)
             begin
                 rbuf_we = 1;
                 en_r = 1;
+                next_state = NEW;
             end
-            if(is_load)
-                next_state = CMP_L;
-            else if(is_store)
-                next_state = CMP_S;
         end
-        else if(curr_state == CMP_L)
+        if(curr_state == NEW)
+        begin
+            /*if(|is_dmem)
+            begin
+                rbuf_we = 1;
+                en_r = 1;
+            end*/
+            if(is_load)
+            begin
+                //next_state = CMP_L;
+                if(hit)
+                    next_state = LOAD;
+                else
+                begin
+                    rbuf_we = 1;
+                    en_r = 1;
+                    pipeline_ready = 1;
+                    next_state = NEW;
+                end
+            end
+            else if(is_store)
+            begin
+                //next_state = CMP_S;
+                if(hit)
+                    next_state = DIRECT;
+                else
+                begin
+                    rbuf_we = 1;
+                    en_r = 1;
+                    curr_state = STORE;
+                    pipeline_ready = 1;
+                end
+            end
+        end
+        /*else if(curr_state == CMP_L)
         begin
             if(hit)
                 next_state = LOAD;
@@ -92,13 +124,14 @@ module DCache_FSM(
                 pipeline_ready = 1;
                 next_state = NEW;
             end
-        end
+        end*/
         else if(curr_state == LOAD)
         begin
             memory_valid = 1;
             if(memory_ready)
             begin
                 ret_we = 1;
+                Cache_we_w = 1;
                 next_state = WRITE;
             end
         end
@@ -106,10 +139,12 @@ module DCache_FSM(
         begin
             is_data_from_mem = 1;
             pipeline_ready = 1;
-            Cache_we_w = 1;
+            rbuf_we = 1;
+            en_r = 1;
+            //Cache_we_w = 1;
             next_state = NEW;
         end
-        else if(curr_state == CMP_S)
+        /*else if(curr_state == CMP_S)
         begin
             if(hit)
                 next_state = DIRECT;
@@ -118,7 +153,7 @@ module DCache_FSM(
                 curr_state = STORE;
                 pipeline_ready = 1;
             end
-        end
+        end*/
         else if(curr_state == DIRECT)
         begin
             is_direct = 1;
@@ -130,7 +165,11 @@ module DCache_FSM(
             memory_valid = 1;
             memory_for_store = 1;
             if(memory_ready)
+            begin
+                rbuf_we = 1;
+                en_r = 1;
                 next_state = NEW;
+            end
         end
     end
 

@@ -23,8 +23,10 @@
 
 module ICache(
     input clk, rst,
-    input stall,
-    input flush,
+    input ICache_stall_from_DCache,
+    input ICache_stall_from_Load,
+    input EX_Branch,
+    input Pre_Branch,
     input [`WORD-1:0] PC,
     input pipeline_valid,
     input memory_ready,
@@ -33,14 +35,18 @@ module ICache(
     output [`WORD-1:0] load_addr,
     output pipeline_ready,
     output memory_valid,
+    output fix_branch,
     output [`WORD-1:0] inst
     );
+
+    wire stall = ICache_stall_from_DCache | ICache_stall_from_Load;
+    wire flush = EX_Branch | Pre_Branch;
 
     wire rbuf_we;
     wire [`WORD-1:0] req_addr; 
     Request_Buffer Request_Buffer(
         .clk(clk), .rst(rst),
-        .we(rbuf_we | ~stall),
+        .we(rbuf_we && (fix_branch | ~stall)),
         .in(PC),
         .out(req_addr)
     );
@@ -78,9 +84,9 @@ module ICache(
                 .clk(clk), 
                 .addr_w(addr_w),
                 .addr_r(addr_r),
-                .din_w(data_w),
+                .din_w(inst_from_mem),
                 .we_w(Cache_we_w[i]),
-                .en_r(~stall),
+                .en_r(~stall | fix_branch),
                 .dout_r(Cache_data_r[i])
             );
             BRAM_SDPSC #(TAG_WIDTH, `RAM_DEPTH, `RAM_PERFORMANCE, "")  
@@ -90,7 +96,7 @@ module ICache(
                 .addr_r(addr_r),
                 .din_w(tag_w),
                 .we_w(Cache_we_w[i]),
-                .en_r(~stall),
+                .en_r(~stall | fix_branch),
                 .dout_r(tag_r[i])
             );
             assign hit[i] = (tag_r[i] == tag_w);
@@ -114,16 +120,17 @@ module ICache(
     end
 
     wire is_inst_from_mem;
-    wire [`WORD-1:0] inst_i = is_inst_from_mem ? inst_from_ret : inst_from_cache;
+    assign inst = is_inst_from_mem ? inst_from_ret : inst_from_cache;
+    /*wire [`WORD-1:0] inst_i = is_inst_from_mem ? inst_from_ret : inst_from_cache;
     reg [`WORD-1:0] inst_reg = 0;
-    always@(negedge clk)
+    always@(posedge clk)
     begin
         if(rst | flush)
             inst_reg <= 0;
         else
             inst_reg <= inst_i;
     end
-    assign inst = inst_reg;
+    assign inst = inst_reg;*/
 
 
     wire way_to_replace;
@@ -137,7 +144,8 @@ module ICache(
 
     ICache_FSM ICache_FSM(
         .clk(clk),
-        .rst(rst | flush | stall),
+        .rst(rst | flush),
+        .stall(stall),
         .hit(hit),
         .way_to_replace(way_to_replace),
         .pipeline_valid(pipeline_valid),
@@ -150,7 +158,8 @@ module ICache(
         .pipeline_ready(pipeline_ready),
         .Cache_we_w(Cache_we_w),
         .is_inst_from_mem(is_inst_from_mem),
-        .memory_valid(memory_valid)
+        .memory_valid(memory_valid),
+        .fix_branch(fix_branch)
     );
 
     assign load_addr = req_addr;

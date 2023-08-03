@@ -23,6 +23,7 @@
 module ICache_FSM(
     input clk,
     input rst,
+    input stall,
     input [`CACHE_WAY-1:0] hit,
     input way_to_replace,
     input pipeline_valid,
@@ -35,14 +36,15 @@ module ICache_FSM(
     output reg pipeline_ready = 0,
     output reg [`CACHE_WAY-1:0] Cache_we_w = 0,
     output reg is_inst_from_mem = 0,
-    output reg memory_valid = 0
+    output reg memory_valid = 0,
+    output reg fix_branch = 0
     );
 
     parameter NEW = 0;
     parameter LOAD = 1;
     parameter WRITE = 2;
     parameter CMP = 3;
-    parameter FIND = 4;
+    parameter IDLE = 4;
 
     reg [4:0] curr_state = NEW;
     reg [4:0] next_state = NEW;
@@ -50,6 +52,8 @@ module ICache_FSM(
     always@(posedge clk)
     begin
         if(rst)
+            curr_state <= IDLE;
+        else if(stall)
             curr_state <= NEW;
         else
             curr_state <= next_state;
@@ -72,32 +76,57 @@ module ICache_FSM(
         Cache_we_w = 0;
         is_inst_from_mem = 0;
         memory_valid = 0;
+        fix_branch = 0;
         next_state = curr_state;
+        if(curr_state == IDLE)
+        begin
+            rbuf_we = 1;
+            fix_branch = 1;
+            next_state = NEW;
+        end
         if(curr_state == NEW)
         begin
+            //if(pipeline_valid)
+            //begin
+            //rbuf_we = 1;
+            //next_state = CMP;
+            //end
             if(pipeline_valid)
             begin
-                rbuf_we = 1;
-                next_state = CMP;
-            end    
+                if(~|hit)
+                begin
+                    next_state = LOAD;
+                end
+                else 
+                begin
+                    select_way = hit[1];
+                    pipeline_ready = 1;
+                    next_state = NEW;
+                    rbuf_we = 1;
+                end
+            end
         end
-        else if(curr_state == CMP)
-        begin
+        /*else if(curr_state == CMP)
+        begin            
             if(~|hit)
                 next_state = LOAD;
             else
             begin
+                rbuf_we = 1;
                 select_way = hit[1];
                 pipeline_ready = 1;
-                next_state = NEW;
+                next_state = CMP;
             end
-        end
+        end*/
         else if(curr_state == LOAD)
         begin
             memory_valid = 1;
             if(memory_ready)
             begin
                 ret_we = 1;
+                Cache_we_w[way_to_replace] = 1;
+                //pipeline_ready = 1;
+                //next_state = WRITE;
                 next_state = WRITE;
             end
         end
@@ -105,7 +134,8 @@ module ICache_FSM(
         begin
             is_inst_from_mem = 1;
             pipeline_ready = 1;
-            Cache_we_w[way_to_replace] = 1;
+            rbuf_we = 1;
+            //Cache_we_w[way_to_replace] = 1;
             next_state = NEW;
         end
     end

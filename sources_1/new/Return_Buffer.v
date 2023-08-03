@@ -25,8 +25,8 @@ module Return_Buffer(
     input we,
     input [`CACHE_LINE_BYTE_LOG-2-1:0] addr,
     input [`CACHE_LINE_WIDTH-1:0] in,
-    output reg [`CACHE_LINE_WIDTH-1:0] out,
-    output reg [`WORD-1:0] ret
+    output reg [`CACHE_LINE_WIDTH-1:0] out = 0,
+    output reg [`WORD-1:0] ret = 0
     );
 
     always@(posedge clk)

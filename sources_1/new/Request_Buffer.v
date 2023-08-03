@@ -24,7 +24,7 @@ module Request_Buffer(
     input clk, rst,
     input we,
     input [`WORD-1:0] in,
-    output reg [`WORD-1:0] out
+    output reg [`WORD-1:0] out = 0
     );
     always@(posedge clk)
     begin

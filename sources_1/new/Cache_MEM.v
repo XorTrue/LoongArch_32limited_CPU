@@ -22,6 +22,9 @@
 
 module Cache_MEM(
     input clk, rst,
+    input stall_from_Load,
+    input EX_Branch,
+    input Pre_Branch,
 
     input memory_valid_for_ICache,
     input [`WORD-1:0] load_inst_addr,
@@ -51,6 +54,9 @@ module Cache_MEM(
     output [31:0] ext_ram_data_out
     );
 
+    wire stall = stall_from_Load;
+    wire flush = EX_Branch | Pre_Branch;
+
     reg [2:0] cache_cnt = 3'b100;
     reg [`CACHE_LINE_WIDTH-1:0] addr_cache = 0;
     reg [`CACHE_LINE_WIDTH-1:0] store_cache = 0;
@@ -64,14 +70,13 @@ module Cache_MEM(
     parameter STORE = 3;
     parameter LOAD = 4;
     parameter WAIT = 5;
-
-    parameter RET = 15;
+    parameter RET = 6;
 
     reg [3:0] curr_state = IDLE;
     reg [3:0] next_state = IDLE;
     always@(posedge clk)
     begin
-        if(rst)
+        if(rst | ((flush | stall) && ~memory_valid_for_DCache))
             curr_state <= IDLE;
         else
             curr_state <= next_state;
@@ -91,17 +96,20 @@ module Cache_MEM(
         next_state = curr_state;
         if(curr_state == IDLE)
         begin
-            if(~memory_valid_for_DCache && 
-                memory_valid_for_ICache)
-                next_state = DECODE;
-            else
+            if(~(memory_ready_for_DCache | memory_ready_for_ICache))
             begin
-                if(memory_for_store && ~write_cache_full)
-                    next_state = CACHE;
-                else if(~write_cache_empty)
+                if(~memory_valid_for_DCache && 
+                    memory_valid_for_ICache)
                     next_state = DECODE;
-                else if(memory_valid_for_DCache)
-                    next_state = DECODE;
+                else if(memory_ready_for_DCache)
+                begin
+                    if(memory_for_store && ~write_cache_full)
+                        next_state = CACHE;
+                    else if(~write_cache_empty)
+                        next_state = DECODE;
+                    else if(memory_valid_for_DCache)
+                        next_state = DECODE;
+                end
             end
         end
         else if(curr_state == CACHE)
@@ -120,7 +128,7 @@ module Cache_MEM(
         end
         else if(curr_state == WAIT)
         begin
-            if(wait_cnt == 3)
+            if(wait_cnt == `CACHE_WAIT_CYCLE - 1)
             begin
                 if(wait_state == WAIT_S)
                     next_state = STORE;
@@ -132,13 +140,15 @@ module Cache_MEM(
         begin
             if(num_cnt == 1)
                 next_state = IDLE;
-            next_state = WAIT;
+            else
+                next_state = WAIT;
         end
         else if(curr_state == LOAD)
         begin
-            if(num_cnt == 5)
+            if(num_cnt == `CACHE_WORD_NUM)
                 next_state = RET;
-            next_state = WAIT;
+            else
+                next_state = WAIT;
         end
         else if(curr_state == RET)
             next_state = IDLE;
@@ -190,7 +200,7 @@ module Cache_MEM(
         end
         else if(curr_state == WAIT)
         begin
-            if(wait_cnt == 3)
+            if(wait_cnt == `CACHE_WAIT_CYCLE - 1)
             begin
                 base_ram_ce_n <= 1;
                 base_ram_oe_n <= 1;
@@ -205,6 +215,7 @@ module Cache_MEM(
         else if(curr_state == STORE)
         begin
             num_cnt <= num_cnt + 1;
+            wait_cnt <= 0;
             if(num_cnt == 1)
             begin
                 ext_ram_ce_n <= 1;
@@ -224,11 +235,12 @@ module Cache_MEM(
             base_ram_addr <= {base_ram_addr[19:4], num_cnt[1:0], 2'b00};
             ext_ram_addr  <= { ext_ram_addr[19:4], num_cnt[1:0], 2'b00};
             num_cnt <= num_cnt + 1;
-            inst_from_mem <= {base_ram_data, inst_from_mem[`WORD*4-1:`WORD*3]};
+            wait_cnt <= 0;
+            inst_from_mem <= {base_ram_data, inst_from_mem[`WORD*4-1:`WORD]};
             data_from_mem <= is_base ? 
-                {base_ram_data, data_from_mem[`WORD*4-1:`WORD*3]} :
-                {ext_ram_data_in, data_from_mem[`WORD*4-1:`WORD*3]};
-            if(num_cnt == 5)
+                {base_ram_data, data_from_mem[`WORD*4-1:`WORD]} :
+                {ext_ram_data_in, data_from_mem[`WORD*4-1:`WORD]};
+            if(num_cnt == `CACHE_WORD_NUM)
             begin
                 base_ram_ce_n <= 1;
                 base_ram_oe_n <= 1;

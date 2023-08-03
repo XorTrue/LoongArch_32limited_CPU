@@ -128,7 +128,7 @@ module DCache(
             default: data_direct = 0;
         endcase
     end
-    assign data_w_act = is_direct ? data_direct : data_w;
+    assign data_w_act = is_direct ? data_direct : data_from_mem;
 
     DCache_FSM DCache_FSM(
         .clk(clk), .rst(rst),

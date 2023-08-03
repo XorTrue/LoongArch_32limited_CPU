@@ -23,7 +23,12 @@
 module IF0_IF1(
     input clk,
     input rst,
+    input EX_Branch,
+    input Pre_Branch,
+    input IF0_IF1_stall_from_ICache,
     input IF0_IF1_stall_from_Load,
+    input IF0_IF1_stall_from_DCache,
+    input fix_branch,
 
     input [`WORD-1:0] IF0_IF1_PC_in,
     input ICache_valid_in,
@@ -32,7 +37,10 @@ module IF0_IF1(
     output reg ICache_valid_out = 0
     );
 
-    wire stall = IF0_IF1_stall_from_Load;
+    wire stall = (IF0_IF1_stall_from_DCache |
+                  IF0_IF1_stall_from_Load |
+                  (~EX_Branch && ~Pre_Branch && IF0_IF1_stall_from_ICache))
+                 && ~fix_branch ;
     always@(posedge clk)
     begin
         if(rst)

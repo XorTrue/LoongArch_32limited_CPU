@@ -67,6 +67,7 @@ module CPU_top(
     wire stall_from_DCache;
     wire stall_from_Load;
     wire flush_from_Load;
+    wire fix_branch;
     wire [`WORD-1:0] PC_IF0;
     IF0 IF0(
         .clk(clk), .rst(rst),
@@ -77,6 +78,7 @@ module CPU_top(
         .PC_stall_from_ICache(stall_from_ICache),
         .PC_stall_from_Load(stall_from_Load),
         .PC_stall_from_DCache(stall_from_DCache), 
+        .fix_branch(fix_branch),
         .PC_out(PC_IF0)
     );
 
@@ -85,7 +87,12 @@ module CPU_top(
     wire ICache_valid;
     IF0_IF1 IF0_IF1(
         .clk(clk), .rst(rst),
+        .EX_Branch(EX_Branch),
+        .Pre_Branch(Pre_Branch),
+        .IF0_IF1_stall_from_ICache(stall_from_ICache),
         .IF0_IF1_stall_from_Load(stall_from_Load),
+        .IF0_IF1_stall_from_DCache(stall_from_DCache),
+        .fix_branch(fix_branch),
         .IF0_IF1_PC_in(PC_IF0), 
         .IF0_IF1_PC_out(PC_IF1), 
         .ICache_valid_in(ICache_valid_in),
@@ -101,8 +108,10 @@ module CPU_top(
     ICache ICache(
         .clk(clk),
         .rst(rst),
-        .stall(stall_from_DCache | stall_from_Load),
-        .flush(Pre_Branch | EX_Branch),
+        .ICache_stall_from_DCache(stall_from_DCache),
+        .ICache_stall_from_Load(stall_from_Load),
+        .Pre_Branch(Pre_Branch),
+        .EX_Branch(EX_Branch),
         .PC(PC_IF0),
         .pipeline_valid(ICache_valid_in),
         .memory_ready(memory_ready_for_ICache),
@@ -110,6 +119,7 @@ module CPU_top(
         .load_addr(load_inst_addr),
         .pipeline_ready(ICache_ready),
         .memory_valid(memory_valid_for_ICache),
+        .fix_branch(fix_branch),
         .inst(inst_ICache)
     );
 
@@ -436,6 +446,9 @@ module CPU_top(
 
     Cache_MEM Cache_MEM(
         .clk(clk), .rst(rst),
+        .stall_from_Load(stall_from_Load),
+        .EX_Branch(EX_Branch),
+        .Pre_Branch(Pre_Branch),
 
         .memory_valid_for_ICache(memory_valid_for_ICache),
         .load_inst_addr(load_inst_addr),
