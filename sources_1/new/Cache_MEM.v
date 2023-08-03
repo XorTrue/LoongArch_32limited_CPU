@@ -44,7 +44,8 @@ module Cache_MEM(
     output reg base_ram_oe_n = 1,
     output reg base_ram_we_n = 1,
     output reg [19:0] base_ram_addr = 0,
-    inout [31:0] base_ram_data,
+    input [31:0] base_ram_data_r,
+    output [31:0] base_ram_data_w,
   
     output reg ext_ram_ce_n = 1,
     output reg ext_ram_oe_n = 1,
@@ -78,6 +79,7 @@ module Cache_MEM(
                     load_store_data_addr <  32'h8040_0000);
 
     assign ext_ram_data_w = data_to_store;
+    assign base_ram_data_w = 0;
 
     always@(posedge clk)
     begin
@@ -181,12 +183,12 @@ module Cache_MEM(
         begin
             if(wait_cnt == `CACHE_WAIT_CYCLE - 1)
             begin
-                base_ram_ce_n <= 1;
-                base_ram_oe_n <= 1;
-                base_ram_we_n <= 1;
-                ext_ram_ce_n <= 1;
-                ext_ram_oe_n <= 1;
-                ext_ram_we_n <= 1;
+                //base_ram_ce_n <= 1;
+                //base_ram_oe_n <= 1;
+                //base_ram_we_n <= 1;
+                //ext_ram_ce_n <= 1;
+                //ext_ram_oe_n <= 1;
+                //ext_ram_we_n <= 1;
             end
             else
                 wait_cnt <= wait_cnt + 1;
@@ -212,9 +214,9 @@ module Cache_MEM(
             ext_ram_addr  <= { ext_ram_addr[19:4], num_cnt[1:0], 2'b00};
             num_cnt <= num_cnt + 1;
             wait_cnt <= 0;
-            inst_from_mem <= {base_ram_data, inst_from_mem[`WORD*4-1:`WORD]};
+            inst_from_mem <= {base_ram_data_r, inst_from_mem[`WORD*4-1:`WORD]};
             data_from_mem <= is_base ? 
-                {base_ram_data, data_from_mem[`WORD*4-1:`WORD]} :
+                {base_ram_data_r, data_from_mem[`WORD*4-1:`WORD]} :
                 {ext_ram_data_r, data_from_mem[`WORD*4-1:`WORD]};
             if(num_cnt == `CACHE_WORD_NUM)
             begin

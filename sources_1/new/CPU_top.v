@@ -34,13 +34,14 @@ module CPU_top(
     output base_ram_oe_n,
     output base_ram_we_n,
     output [19:0] base_ram_addr,
-    inout [31:0] base_ram_data,
+    input [31:0] base_ram_data_r,
+    output [31:0] base_ram_data_w,
 
     output ext_ram_ce_n,
     output ext_ram_oe_n,
     output ext_ram_we_n,
     output [19:0] ext_ram_addr,
-    output [31:0] ext_ram_data_r,
+    input [31:0] ext_ram_data_r,
     output [31:0] ext_ram_data_w,
 
 
@@ -319,7 +320,7 @@ module CPU_top(
         .data_to_t_out(data_to_t_MEM)
     );
 
-    wire [`WORD-1:0] mu00_in, mul01_in, mul10_in;
+    wire [`WORD-1:0] mul00_in, mul01_in, mul10_in;
     assign {mul10_in, mul01_in, mul00_in} = mul_tmp_reg;
     wire [`WORD-1:0] mul_res;
     MUL_ST1 MUL_ST1(
@@ -372,7 +373,7 @@ module CPU_top(
     );
     assign DCache_ready = 1;*/
 
-    wire REG_wrtie_MEM;
+    wire REG_write_MEM;
     wire [`WORD-1:0] CAL_res;
     wire flush_from_DCache;
     wire [`WORD-1:0] data_MEM;
@@ -480,7 +481,8 @@ module CPU_top(
         .base_ram_oe_n(base_ram_oe_n),
         .base_ram_we_n(base_ram_we_n),
         .base_ram_addr(base_ram_addr),
-        .base_ram_data(base_ram_data),
+        .base_ram_data_r(base_ram_data_r),
+        .base_ram_data_w(base_ram_data_w),
 
         .ext_ram_ce_n(ext_ram_ce_n),
         .ext_ram_oe_n(ext_ram_oe_n),
@@ -490,7 +492,7 @@ module CPU_top(
         .ext_ram_data_w(ext_ram_data_w)
     );
 
-    BRAM_SDPSC #(`WORD, `RAM_DEPTH, `RAM_PERFORMANCE, "D:/XorTrue/LoongArch/Project/Project.srcs/inst_init.txt") 
+    /*BRAM_SDPSC #(`WORD, `RAM_DEPTH, `RAM_PERFORMANCE, "D:/XorTrue/LoongArch/Project/Project.srcs/inst_init.txt") 
     I_MEM_btm(
         .clk(clk),
         .addr_w(0),
@@ -510,7 +512,7 @@ module CPU_top(
         .we_w(~ext_ram_we_n),
         .en_r(~ext_ram_oe_n),
         .dout_r(ext_ram_data_r)
-    );
+    );*/
 
     assign PC_IF0_out = PC_IF0;
     assign PC_IF1_out = PC_IF1;
